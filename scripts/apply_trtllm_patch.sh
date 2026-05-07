@@ -16,20 +16,21 @@ fi
 
 cd "$trt_repo"
 
+if git apply --reverse --check "$patch_path" >/dev/null 2>&1; then
+  echo "Patch already applied."
+  exit 0
+fi
+
 if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "TRTLLM submodule has local changes; refusing to apply patch over them." >&2
   git status --short
   exit 1
 fi
 
-if git apply --reverse --check "$patch_path" >/dev/null 2>&1; then
-  echo "Patch already applied."
-else
-  git checkout -B "$branch" "$base_sha"
-  git apply --check "$patch_path"
-  git apply "$patch_path"
-  echo "Patch applied."
-fi
+git checkout -B "$branch" "$base_sha"
+git apply --check "$patch_path"
+git apply "$patch_path"
+echo "Patch applied."
 
 if [ "$commit_patch" = "1" ]; then
   git add tensorrt_llm/_torch/modules/mamba/mamba2_mixer.py
