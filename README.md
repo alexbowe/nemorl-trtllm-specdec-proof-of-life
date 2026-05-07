@@ -16,6 +16,10 @@ The patch fixes the older Rick-branch Mamba decode path for specdec batches with
 multiple draft tokens per request. Current NVIDIA TRTLLM `main` has a different
 speculative/MTP path, so this patch should not be ported there blindly.
 
+Rick's Nemo-RL branch already passes `trtllm_cfg.gpu_memory_utilization` through
+to TRTLLM as `KvCacheConfig(free_gpu_memory_fraction=...)`, so no Nemo-RL fork is
+needed for the memory-setting path unless we make additional RL-side changes.
+
 ## Layout
 
 - `external/TensorRT-LLM`: pinned TRTLLM submodule
@@ -35,8 +39,8 @@ scripts/bootstrap_submodules.sh
 scripts/apply_trtllm_patch.sh
 ```
 
-If you want the patched TRTLLM state to be mergeable back to Rick, create forks
-first, then:
+If you want the patched TRTLLM state to be mergeable back to Rick, create a
+TensorRT-LLM fork first, then:
 
 ```bash
 scripts/use_forks.sh alexbowe
@@ -45,6 +49,8 @@ git -C external/TensorRT-LLM push -u origin abowe/rick-specdec-multitoken-fix
 git add .gitmodules external/TensorRT-LLM
 git commit -m "Pin patched TRTLLM specdec proof-of-life branch"
 ```
+
+Keep `external/RL` pointed at Rick's repo unless Nemo-RL needs a code change.
 
 Until the parent repo and forks are created on GitHub, the local repo can still
 be used directly from its checkout path.
