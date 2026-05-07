@@ -46,6 +46,9 @@ git add .gitmodules external/TensorRT-LLM
 git commit -m "Pin patched TRTLLM specdec proof-of-life branch"
 ```
 
+Until the parent repo and forks are created on GitHub, the local repo can still
+be used directly from its checkout path.
+
 ## Computelab Run
 
 This assumes the validated computelab venv/container shape is already present:
