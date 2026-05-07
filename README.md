@@ -63,6 +63,16 @@ This assumes the validated computelab venv/container shape is already present:
 - container: `/home/scratch.abowe_other/dev/trtllm_pytorch2512_trt1014.sqsh`
 - venv: `/home/scratch.abowe_other/dev/venvs/trtllm-rick-py312`
 
+From a computelab login shell:
+
+```bash
+cd /home/scratch.abowe_other/dev/nemorl-trtllm-specdec-proof-of-life-public
+scripts/computelab_srun_smoke.sh
+```
+
+That reserves the validated 80GB A100 DVT node shape, starts the `.sqsh`
+container, and runs the smoke inside it.
+
 Inside a suitable Pyxis/Enroot allocation:
 
 ```bash
