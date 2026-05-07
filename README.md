@@ -28,14 +28,12 @@ The bootstrap script clones or updates this repo under `$DEV_ROOT`, reserves a
 GPU node with `srun`, starts the TRTLLM `.sqsh` container, runs preflight checks,
 and launches the tiny GRPO smoke.
 
-If an old checkout exists and is dirty, choose a fresh install path:
+If an old checkout exists, the bootstrap updates the top-level smoke scripts,
+patches, and docs from `origin/main`, then re-syncs submodules. Existing
+submodule downloads are reused.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env \
-  DEV_ROOT=/home/scratch.abowe_other/dev \
-  NEMORL_TRTLLM_INSTALL_DIR=/home/scratch.abowe_other/dev/nemorl-trtllm-specdec-proof-of-life-fresh \
-  bash
-```
+Use `NEMORL_TRTLLM_INSTALL_DIR` only when you intentionally want a separate
+checkout.
 
 Expected defaults next to the repo:
 
