@@ -11,6 +11,11 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 
 if [ -d "$install_dir/.git" ]; then
+  if [ -n "$(git -C "$install_dir" status --porcelain)" ]; then
+    echo "Existing checkout is not clean: $install_dir" >&2
+    echo "Use NEMORL_TRTLLM_INSTALL_DIR=/new/path for a fresh checkout, or clean that checkout manually." >&2
+    exit 1
+  fi
   git -C "$install_dir" fetch origin "$ref"
   git -C "$install_dir" checkout "$ref"
   git -C "$install_dir" pull --ff-only origin "$ref"

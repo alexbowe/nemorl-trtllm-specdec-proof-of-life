@@ -11,20 +11,31 @@ generation/logprob/training step and exits after `max_num_steps=1`.
 From a computelab login shell:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | \
-  DEV_ROOT=/path/to/scratch/dev bash
+curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env \
+  DEV_ROOT=/path/to/scratch/dev \
+  bash
 ```
 
 For this environment:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | \
-  DEV_ROOT=/home/scratch.abowe_other/dev bash
+curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env \
+  DEV_ROOT=/home/scratch.abowe_other/dev \
+  bash
 ```
 
 The bootstrap script clones or updates this repo under `$DEV_ROOT`, reserves a
 GPU node with `srun`, starts the TRTLLM `.sqsh` container, runs preflight checks,
 and launches the tiny GRPO smoke.
+
+If an old checkout exists and is dirty, choose a fresh install path:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env \
+  DEV_ROOT=/home/scratch.abowe_other/dev \
+  NEMORL_TRTLLM_INSTALL_DIR=/home/scratch.abowe_other/dev/nemorl-trtllm-specdec-proof-of-life-fresh \
+  bash
+```
 
 Expected defaults next to the repo:
 
@@ -34,7 +45,7 @@ Expected defaults next to the repo:
 Override paths as needed:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | \
+curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env \
   DEV_ROOT=/path/to/scratch/dev \
   COMPUTELAB_CONTAINER_IMAGE=/path/to/trtllm_pytorch2512_trt1014.sqsh \
   NEMORL_TRTLLM_VENV=/path/to/venvs/trtllm-rick-py312 \
