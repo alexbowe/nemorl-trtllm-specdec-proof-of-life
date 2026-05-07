@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/.." && pwd)"
 trt_repo="$repo_root/external/TensorRT-LLM"
-patch_path="$repo_root/patches/trtllm-rick-mamba-multitoken-decode.patch"
+patch_path="$repo_root/patches/trtllm-mamba-multitoken-decode.patch"
 base_sha="c31be54bb2c34d52cc710358bae31fcf8a43d5ae"
 branch="${TRTLLM_PATCH_BRANCH:-abowe/rick-specdec-multitoken-fix}"
 commit_patch="${COMMIT_PATCH:-0}"

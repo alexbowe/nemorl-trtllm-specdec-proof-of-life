@@ -18,5 +18,5 @@ printf 'TensorRT-LLM submodule URL now points at %s/TensorRT-LLM.\n' "$trtllm_ow
 if [ -n "$rl_owner" ]; then
   printf 'RL submodule URL now points at %s/RL.\n' "$rl_owner"
 else
-  printf 'RL submodule URL left on Rick fork; set RL_FORK_OWNER only if RL needs changes.\n'
+  printf 'RL submodule URL left unchanged; set RL_FORK_OWNER only if RL needs changes.\n'
 fi
