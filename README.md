@@ -8,9 +8,10 @@ generation/logprob/training step and exits after `max_num_steps=1`.
 
 ## Pinned Sources
 
-- TensorRT-LLM: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
+- TensorRT-LLM: `alexbowe/TensorRT-LLM`, branch `abowe/rick-specdec-multitoken-fix`, commit `2b617b2f2c8fbbdf41eb1720f473c1ae926522e5`
 - Nemo-RL: `ricklamers-nvidia/RL`, branch `rick/trtllm-specdec`, commit `d69c8f638e390b407b89bc561355cfb4b196e131`
-- Local TRTLLM patch: `patches/trtllm-rick-mamba-multitoken-decode.patch`
+- Base TRTLLM branch: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
+- Review patch: `patches/trtllm-rick-mamba-multitoken-decode.patch`
 
 The patch fixes the older Rick-branch Mamba decode path for specdec batches with
 multiple draft tokens per request. Current NVIDIA TRTLLM `main` has a different
@@ -39,8 +40,8 @@ scripts/bootstrap_submodules.sh
 scripts/apply_trtllm_patch.sh
 ```
 
-If you want the patched TRTLLM state to be mergeable back to Rick, create a
-TensorRT-LLM fork first, then:
+The TRTLLM submodule already points at the fork-backed patch branch. To recreate
+or update that branch:
 
 ```bash
 scripts/use_forks.sh alexbowe
