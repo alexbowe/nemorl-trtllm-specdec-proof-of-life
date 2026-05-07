@@ -1,0 +1,135 @@
+diff --git a/tensorrt_llm/_torch/modules/mamba/mamba2_mixer.py b/tensorrt_llm/_torch/modules/mamba/mamba2_mixer.py
+index 44ab0e51a..c0a8686ab 100644
+--- a/tensorrt_llm/_torch/modules/mamba/mamba2_mixer.py
++++ b/tensorrt_llm/_torch/modules/mamba/mamba2_mixer.py
+@@ -265,49 +265,92 @@ class Mamba2Mixer(nn.Module):
+             ssm_states[state_indices_p] = current_ssm_states
+ 
+         if num_decodes > 0:
+-            xbc_d = causal_conv1d_update(xbc_d,
+-                                         conv_states,
+-                                         self.conv1d.weight,
+-                                         self.conv1d.bias,
+-                                         activation="silu",
+-                                         conv_state_indices=state_indices_d)
+-
+-            x_d, B_d, C_d = torch.split(
+-                xbc_d,
+-                [
+-                    self.tp_d_inner,
+-                    self.tp_ngroups * self.d_state,
+-                    self.tp_ngroups * self.d_state,
+-                ],
+-                dim=-1,
+-            )
+-
+-            x_d = rearrange(x_d, "b (h p) -> b h p", p=self.head_dim)
+-            dt_d = repeat(dt_d, "b h -> b h p", p=self.head_dim)
+-            B_d = rearrange(B_d, "b (g n) -> b g n", g=self.tp_ngroups)
+-            C_d = rearrange(C_d, "b (g n) -> b g n", g=self.tp_ngroups)
+-            z_d = rearrange(z_d, "b (h p) -> b h p", p=self.head_dim)
+-
+             A = repeat(self.A, "h -> h p n", p=self.head_dim,
+                        n=self.d_state).to(dtype=torch.float32)
+             dt_bias = repeat(self.dt_bias, "h -> h p", p=self.head_dim)
+             D = repeat(self.D, "h -> h p", p=self.head_dim)
+ 
+-            y = selective_state_update(
+-                ssm_states,
+-                x_d,
+-                dt_d,
+-                A,
+-                B_d,
+-                C_d,
+-                D,
+-                z=z_d,
+-                dt_bias=dt_bias,
+-                dt_softplus=self.delta_softplus,
+-                state_batch_indices=state_indices_d,
+-            )
+-
+-            out.append(rearrange(y, "b h p -> b (h p)"))
++            def _decode_step(step_xbc, step_dt, step_z, step_state_indices):
++                step_xbc = causal_conv1d_update(
++                    step_xbc,
++                    conv_states,
++                    self.conv1d.weight,
++                    self.conv1d.bias,
++                    activation="silu",
++                    conv_state_indices=step_state_indices)
++
++                step_x, step_B, step_C = torch.split(
++                    step_xbc,
++                    [
++                        self.tp_d_inner,
++                        self.tp_ngroups * self.d_state,
++                        self.tp_ngroups * self.d_state,
++                    ],
++                    dim=-1,
++                )
++
++                step_x = rearrange(step_x, "b (h p) -> b h p", p=self.head_dim)
++                step_dt = repeat(step_dt, "b h -> b h p", p=self.head_dim)
++                step_B = rearrange(step_B, "b (g n) -> b g n", g=self.tp_ngroups)
++                step_C = rearrange(step_C, "b (g n) -> b g n", g=self.tp_ngroups)
++                step_z = rearrange(step_z, "b (h p) -> b h p", p=self.head_dim)
++
++                step_y = selective_state_update(
++                    ssm_states,
++                    step_x,
++                    step_dt,
++                    A,
++                    step_B,
++                    step_C,
++                    D,
++                    z=step_z,
++                    dt_bias=dt_bias,
++                    dt_softplus=self.delta_softplus,
++                    state_batch_indices=step_state_indices,
++                )
++                return rearrange(step_y, "b h p -> b (h p)")
++
++            if num_decode_tokens == num_decodes:
++                y = _decode_step(xbc_d, dt_d, z_d, state_indices_d)
++            else:
++                decode_lens = attn_metadata.seq_lens[num_prefills:].tolist()
++                assert len(decode_lens) == num_decodes, (
++                    f"Expected {num_decodes} decode lengths, got {len(decode_lens)}"
++                )
++                assert sum(decode_lens) == num_decode_tokens, (
++                    f"Decode token mismatch: split lengths sum to {sum(decode_lens)}, "
++                    f"but got {num_decode_tokens} decode tokens"
++                )
++
++                xbc_chunks = torch.split(xbc_d, decode_lens, dim=0)
++                dt_chunks = torch.split(dt_d, decode_lens, dim=0)
++                z_chunks = torch.split(z_d, decode_lens, dim=0)
++                y_chunks = [[] for _ in range(num_decodes)]
++
++                for step in range(max(decode_lens)):
++                    active = [
++                        request_idx
++                        for request_idx, request_len in enumerate(decode_lens)
++                        if step < request_len
++                    ]
++                    active_idx = torch.tensor(
++                        active, dtype=torch.long, device=state_indices_d.device)
++                    step_state_indices = state_indices_d.index_select(0, active_idx)
++                    step_y = _decode_step(
++                        torch.stack([xbc_chunks[i][step] for i in active], dim=0),
++                        torch.stack([dt_chunks[i][step] for i in active], dim=0),
++                        torch.stack([z_chunks[i][step] for i in active], dim=0),
++                        step_state_indices,
++                    )
++                    for output_idx, request_idx in enumerate(active):
++                        y_chunks[request_idx].append(step_y[output_idx])
++
++                y = torch.cat(
++                    [torch.stack(request_chunks, dim=0)
++                     for request_chunks in y_chunks],
++                    dim=0)
++
++            out.append(y)
+ 
+         out = torch.cat(out, dim=0)
+ 

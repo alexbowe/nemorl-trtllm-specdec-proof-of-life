@@ -1,0 +1,8 @@
+[submodule "external/TensorRT-LLM"]
+	path = external/TensorRT-LLM
+	url = https://github.com/ricklamers-nvidia/TensorRT-LLM.git
+	branch = rick/specdec-driver535-fixes
+[submodule "external/RL"]
+	path = external/RL
+	url = https://github.com/ricklamers-nvidia/RL.git
+	branch = rick/trtllm-specdec
