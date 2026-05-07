@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/.." && pwd)"
 
-dev_root="${DEV_ROOT:-/home/scratch.abowe_other/dev}"
+dev_root="${DEV_ROOT:-$(dirname "$repo_root")}"
 repo="${NEMORL_REPO:-$repo_root/external/RL}"
 trt_repo="${TRTLLM_REPO:-$repo_root/external/TensorRT-LLM}"
 venv="${NEMORL_TRTLLM_VENV:-$dev_root/venvs/trtllm-rick-py312}"

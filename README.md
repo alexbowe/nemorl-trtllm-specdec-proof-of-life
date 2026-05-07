@@ -58,20 +58,37 @@ be used directly from its checkout path.
 
 ## Computelab Run
 
-This assumes the validated computelab venv/container shape is already present:
+Clone the repo somewhere with enough space, usually scratch:
 
-- container: `/home/scratch.abowe_other/dev/trtllm_pytorch2512_trt1014.sqsh`
-- venv: `/home/scratch.abowe_other/dev/venvs/trtllm-rick-py312`
+```bash
+git clone --recurse-submodules https://github.com/alexbowe/nemorl-trtllm-specdec-proof-of-life.git \
+  /path/to/scratch/dev/nemorl-trtllm-specdec-proof-of-life
+```
+
+This assumes the validated computelab venv/container shape is already present.
+By default the scripts look next to the repo for:
+
+- container: `/path/to/scratch/dev/trtllm_pytorch2512_trt1014.sqsh`
+- venv: `/path/to/scratch/dev/venvs/trtllm-rick-py312`
+
+Override those paths when needed:
+
+```bash
+COMPUTELAB_CONTAINER_IMAGE=/path/to/trtllm_pytorch2512_trt1014.sqsh \
+NEMORL_TRTLLM_VENV=/path/to/venvs/trtllm-rick-py312 \
+/path/to/scratch/dev/nemorl-trtllm-specdec-proof-of-life/scripts/computelab_srun_smoke.sh
+```
 
 From a computelab login shell:
 
 ```bash
-cd /home/scratch.abowe_other/dev/nemorl-trtllm-specdec-proof-of-life-public
-scripts/computelab_srun_smoke.sh
+/path/to/scratch/dev/nemorl-trtllm-specdec-proof-of-life/scripts/computelab_srun_smoke.sh
 ```
 
 That reserves the validated 80GB A100 DVT node shape, starts the `.sqsh`
-container, and runs the smoke inside it.
+container, and runs the smoke inside it. The partition, GPU count, CPU count,
+and time limit can be overridden with `COMPUTELAB_PARTITION`,
+`COMPUTELAB_GPUS_PER_NODE`, `COMPUTELAB_CPUS_PER_TASK`, and `COMPUTELAB_TIME`.
 
 Inside a suitable Pyxis/Enroot allocation:
 

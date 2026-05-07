@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/.." && pwd)"
 
-dev_root="${DEV_ROOT:-/home/scratch.abowe_other/dev}"
+dev_root="${DEV_ROOT:-$(dirname "$repo_root")}"
 container_image="${COMPUTELAB_CONTAINER_IMAGE:-$dev_root/trtllm_pytorch2512_trt1014.sqsh}"
 partition="${COMPUTELAB_PARTITION:-a100-sxm4-80gb@dvt/red-october@dvt/4gpu-128cpu-512gb}"
 gpus_per_node="${COMPUTELAB_GPUS_PER_NODE:-2}"
@@ -13,6 +13,7 @@ time_limit="${COMPUTELAB_TIME:-02:00:00}"
 
 if [ ! -f "$container_image" ]; then
   echo "Missing container image: $container_image" >&2
+  echo "Set COMPUTELAB_CONTAINER_IMAGE=/path/to/trtllm_pytorch2512_trt1014.sqsh." >&2
   exit 1
 fi
 
