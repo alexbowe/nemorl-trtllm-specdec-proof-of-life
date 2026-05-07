@@ -82,13 +82,21 @@ NEMORL_TRTLLM_VENV=/path/to/venvs/trtllm-rick-py312 \
 From a computelab login shell:
 
 ```bash
-/path/to/scratch/dev/nemorl-trtllm-specdec-proof-of-life/scripts/computelab_srun_smoke.sh
+curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | \
+  DEV_ROOT=/path/to/scratch/dev bash
 ```
 
-That reserves the validated 80GB A100 DVT node shape, starts the `.sqsh`
-container, and runs the smoke inside it. The partition, GPU count, CPU count,
-and time limit can be overridden with `COMPUTELAB_PARTITION`,
+That clones or updates the repo under `$DEV_ROOT`, reserves the validated 80GB
+A100 DVT node shape, starts the `.sqsh` container, and runs the smoke inside it.
+The install path, partition, GPU count, CPU count, and time limit can be
+overridden with `NEMORL_TRTLLM_INSTALL_DIR`, `COMPUTELAB_PARTITION`,
 `COMPUTELAB_GPUS_PER_NODE`, `COMPUTELAB_CPUS_PER_TASK`, and `COMPUTELAB_TIME`.
+
+If the repo is already cloned:
+
+```bash
+/path/to/scratch/dev/nemorl-trtllm-specdec-proof-of-life/scripts/computelab_srun_smoke.sh
+```
 
 Inside a suitable Pyxis/Enroot allocation:
 
