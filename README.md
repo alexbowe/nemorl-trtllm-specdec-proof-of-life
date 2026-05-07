@@ -11,18 +11,16 @@ generation/logprob/training step and exits after `max_num_steps=1`.
 From a computelab login shell:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env bash
+curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env \
+  DEV_ROOT=/home/scratch.${USER}_other/dev \
+  bash
 ```
 
-By default, the bootstrap uses `/home/scratch.$USER_other/dev` when that scratch
-directory exists, otherwise `$HOME/dev`.
-
-To choose an explicit scratch/dev directory:
+You must set `DEV_ROOT` to the directory where you want the repo, caches, venv,
+and run outputs to live. On computelab, a common pattern is:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env \
-  DEV_ROOT=/path/to/scratch/dev \
-  bash
+/home/scratch.${USER}_other/dev
 ```
 
 The bootstrap script clones or updates this repo under `$DEV_ROOT`, reserves a

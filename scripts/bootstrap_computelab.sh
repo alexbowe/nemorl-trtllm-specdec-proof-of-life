@@ -4,14 +4,12 @@ set -euo pipefail
 repo_url="${NEMORL_TRTLLM_REPO_URL:-https://github.com/alexbowe/nemorl-trtllm-specdec-proof-of-life.git}"
 ref="${NEMORL_TRTLLM_REF:-main}"
 
-username="${USER:-$(id -un)}"
-if [ -n "${DEV_ROOT:-}" ]; then
-  dev_root="$DEV_ROOT"
-elif [ -d "/home/scratch.${username}_other" ]; then
-  dev_root="/home/scratch.${username}_other/dev"
-else
-  dev_root="$HOME/dev"
+if [ -z "${DEV_ROOT:-}" ]; then
+  echo "Set DEV_ROOT to your scratch/dev folder, for example:" >&2
+  echo '  curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env DEV_ROOT=/home/scratch.${USER}_other/dev bash' >&2
+  exit 1
 fi
+dev_root="$DEV_ROOT"
 install_dir="${NEMORL_TRTLLM_INSTALL_DIR:-$dev_root/nemorl-trtllm-specdec-proof-of-life}"
 
 if ! command -v git >/dev/null 2>&1; then
