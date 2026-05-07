@@ -10,6 +10,8 @@ partition="${COMPUTELAB_PARTITION:-a100-sxm4-80gb@dvt/red-october@dvt/4gpu-128cp
 gpus_per_node="${COMPUTELAB_GPUS_PER_NODE:-2}"
 cpus_per_task="${COMPUTELAB_CPUS_PER_TASK:-64}"
 time_limit="${COMPUTELAB_TIME:-02:00:00}"
+slurm_user="${SLURM_USER:-${USER:-$(id -un)}}"
+job_name="nemorl-trtllm-smoke-$$"
 
 if [ ! -f "$container_image" ]; then
   echo "Missing container image: $container_image" >&2
@@ -22,6 +24,7 @@ cd "$repo_root"
 srun_log="$(mktemp "${TMPDIR:-/tmp}/nemorl-trtllm-srun.XXXXXX")"
 
 srun \
+  --job-name="$job_name" \
   --partition="$partition" \
   --nodes=1 \
   --ntasks=1 \
@@ -41,6 +44,13 @@ missing_job_count=0
 while kill -0 "$srun_pid" >/dev/null 2>&1; do
   if [ -z "$job_id" ]; then
     job_id="$(sed -n 's/.*job \([0-9][0-9]*\) queued.*/\1/p' "$srun_log" | tail -n 1)"
+    if [ -z "$job_id" ]; then
+      job_id="$(
+        squeue -h -u "$slurm_user" -n "$job_name" -o "%i" 2>/dev/null \
+          | head -n 1 \
+          || true
+      )"
+    fi
   fi
   if [ -n "$job_id" ]; then
     queue_line="$(squeue -h -j "$job_id" -o "%.18i %.9P %.8j %.8u %.2t %.10M %.10l %.6D %R" 2>/dev/null || true)"
