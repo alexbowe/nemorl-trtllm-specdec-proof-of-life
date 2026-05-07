@@ -22,11 +22,10 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   exit 1
 fi
 
-git checkout -B "$branch" "$base_sha"
-
 if git apply --reverse --check "$patch_path" >/dev/null 2>&1; then
   echo "Patch already applied."
 else
+  git checkout -B "$branch" "$base_sha"
   git apply --check "$patch_path"
   git apply "$patch_path"
   echo "Patch applied."

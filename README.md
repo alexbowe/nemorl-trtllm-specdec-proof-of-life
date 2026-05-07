@@ -65,6 +65,17 @@ This assumes the validated computelab venv/container shape is already present:
 Inside a suitable Pyxis/Enroot allocation:
 
 ```bash
+scripts/computelab_smoke.sh
+```
+
+That single command initializes the submodules, applies the TRTLLM patch when
+needed, runs the preflight, and then runs the tiny GRPO smoke.
+
+For step-by-step debugging, run the same stages manually:
+
+```bash
+scripts/bootstrap_submodules.sh
+scripts/apply_trtllm_patch.sh
 scripts/preflight_computelab.sh
 scripts/run_tiny_grpo.sh
 ```
