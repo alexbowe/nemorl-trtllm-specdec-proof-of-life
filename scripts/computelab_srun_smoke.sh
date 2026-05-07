@@ -36,14 +36,34 @@ srun \
 
 srun_pid=$!
 job_id=""
+missing_job_count=0
 
 while kill -0 "$srun_pid" >/dev/null 2>&1; do
   if [ -z "$job_id" ]; then
     job_id="$(sed -n 's/.*job \([0-9][0-9]*\) queued.*/\1/p' "$srun_log" | tail -n 1)"
   fi
   if [ -n "$job_id" ]; then
-    squeue -j "$job_id" -o "%.18i %.9P %.8j %.8u %.2t %.10M %.10l %.6D %R" || true
-    sleep "${COMPUTELAB_QUEUE_POLL_SECONDS:-60}"
+    queue_line="$(squeue -h -j "$job_id" -o "%.18i %.9P %.8j %.8u %.2t %.10M %.10l %.6D %R" 2>/dev/null || true)"
+    if [ -n "$queue_line" ]; then
+      missing_job_count=0
+      printf '%s\n' "$queue_line"
+      sleep "${COMPUTELAB_QUEUE_POLL_SECONDS:-60}"
+    else
+      missing_job_count=$((missing_job_count + 1))
+      job_state="$(sacct -n -j "$job_id" --format=State%24,ExitCode,Elapsed -P 2>/dev/null | head -n 1 || true)"
+      if [ -n "$job_state" ]; then
+        printf 'Slurm job %s is no longer in squeue: %s\n' "$job_id" "$job_state" >&2
+      else
+        printf 'Slurm job %s is no longer in squeue.\n' "$job_id" >&2
+      fi
+      if [ "$missing_job_count" -ge 2 ]; then
+        printf 'srun is still alive after job %s disappeared; stopping local wrapper.\n' "$job_id" >&2
+        kill "$srun_pid" >/dev/null 2>&1 || true
+        wait "$srun_pid" || true
+        exit 1
+      fi
+      sleep "${COMPUTELAB_MISSING_JOB_GRACE_SECONDS:-15}"
+    fi
   else
     sleep 5
   fi
