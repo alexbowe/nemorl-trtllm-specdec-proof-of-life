@@ -2,8 +2,17 @@
 set -euo pipefail
 
 repo_url="${NEMORL_TRTLLM_REPO_URL:-https://github.com/alexbowe/nemorl-trtllm-specdec-proof-of-life.git}"
-install_dir="${NEMORL_TRTLLM_INSTALL_DIR:-${DEV_ROOT:-$HOME/dev}/nemorl-trtllm-specdec-proof-of-life}"
 ref="${NEMORL_TRTLLM_REF:-main}"
+
+username="${USER:-$(id -un)}"
+if [ -n "${DEV_ROOT:-}" ]; then
+  dev_root="$DEV_ROOT"
+elif [ -d "/home/scratch.${username}_other" ]; then
+  dev_root="/home/scratch.${username}_other/dev"
+else
+  dev_root="$HOME/dev"
+fi
+install_dir="${NEMORL_TRTLLM_INSTALL_DIR:-$dev_root/nemorl-trtllm-specdec-proof-of-life}"
 
 if ! command -v git >/dev/null 2>&1; then
   echo "git is required but was not found." >&2
@@ -12,12 +21,12 @@ fi
 
 if [ -d "$install_dir/.git" ]; then
   git -C "$install_dir" fetch origin "$ref"
-  git -C "$install_dir" checkout -B "$ref" "origin/$ref"
   git -C "$install_dir" restore \
     --source="origin/$ref" \
     --worktree \
     --staged \
     -- .gitmodules README.md data patches scripts
+  git -C "$install_dir" checkout -B "$ref" "origin/$ref"
   git -C "$install_dir" submodule sync --recursive
   git -C "$install_dir" submodule update --init --recursive
 else

@@ -11,16 +11,17 @@ generation/logprob/training step and exits after `max_num_steps=1`.
 From a computelab login shell:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env \
-  DEV_ROOT=/path/to/scratch/dev \
-  bash
+curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env bash
 ```
 
-For this environment:
+By default, the bootstrap uses `/home/scratch.$USER_other/dev` when that scratch
+directory exists, otherwise `$HOME/dev`.
+
+To choose an explicit scratch/dev directory:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env \
-  DEV_ROOT=/home/scratch.abowe_other/dev \
+  DEV_ROOT=/path/to/scratch/dev \
   bash
 ```
 
