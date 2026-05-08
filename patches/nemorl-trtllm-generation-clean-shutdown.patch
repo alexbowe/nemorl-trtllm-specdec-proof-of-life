@@ -1,0 +1,17 @@
+diff --git a/nemo_rl/models/generation/trtllm/trtllm_generation.py b/nemo_rl/models/generation/trtllm/trtllm_generation.py
+--- a/nemo_rl/models/generation/trtllm/trtllm_generation.py
++++ b/nemo_rl/models/generation/trtllm/trtllm_generation.py
+@@ -255,8 +255,11 @@ class TRTLLMGeneration(GenerationInterface):
+     def shutdown(self) -> bool:
+         try:
+             return self.worker_group.shutdown(cleanup_method="shutdown")
+         except Exception as e:
+-            print(f"Error during TRT-LLM shutdown: {e}")
+-            return False
++            message = str(e)
++            if "placement group was removed" in message or "actor died" in message:
++                return True
++            print(f"Error during TRT-LLM shutdown: {e}")
++            return False
+ 
+     def __del__(self) -> None:

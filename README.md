@@ -124,6 +124,7 @@ The reward is only a smoke-test signal.
   - `patches/nemorl-torch-2.9-alias-patch.patch`
   - `patches/nemorl-trtllm-kvcache.patch`
   - `patches/nemorl-trtllm-clean-shutdown.patch`
+  - `patches/nemorl-trtllm-generation-clean-shutdown.patch`
 
 The TRTLLM patch fixes a Mamba decode path on the older specdec branch for
 batches with multiple draft tokens per request. Current NVIDIA TRTLLM `main` has
