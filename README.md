@@ -77,6 +77,8 @@ For step-by-step debugging:
 ```bash
 scripts/bootstrap_submodules.sh
 scripts/apply_trtllm_patch.sh
+scripts/apply_nemorl_patch.sh
+scripts/prepare_trtllm_libs.sh
 scripts/preflight_computelab.sh
 scripts/run_tiny_grpo.sh
 ```
@@ -97,19 +99,36 @@ Validated smoke result:
 
 The reward is only a smoke-test signal.
 
+## Fixes Applied
+
+- Patch the TRTLLM Mamba decode path to handle multiple draft tokens per request
+  with `draft_target`.
+- Link built TRTLLM plugin `.so` files into the fresh source checkout, because a
+  clean submodule checkout does not include compiled TRTLLM libraries.
+- Relax Nemo-RL's PyTorch alias patch guard from `2.9.0` to `2.9.x` for the
+  validated `2.9.1+cu130` venv.
+- Pass `KvCacheConfig(enable_block_reuse=False, max_tokens=...,
+  free_gpu_memory_fraction=...)` into TRTLLM for the Mamba cache path.
+- Run TRTLLM generation one prompt at a time for this tiny smoke config.
+- Force anonymous public GitHub fetches in bootstrap to avoid stale credential
+  helpers turning public fetches into `403` errors.
+
 ## Sources
 
 - TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/rick-specdec-multitoken-fix`, commit `2b617b2f2c8fbbdf41eb1720f473c1ae926522e5`
 - Nemo-RL submodule: `ricklamers-nvidia/RL`, branch `rick/trtllm-specdec`, commit `d69c8f638e390b407b89bc561355cfb4b196e131`
 - TRTLLM base branch: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
-- Review patch: `patches/trtllm-mamba-multitoken-decode.patch`
+- Review patches:
+  - `patches/trtllm-mamba-multitoken-decode.patch`
+  - `patches/nemorl-torch-2.9-alias-patch.patch`
+  - `patches/nemorl-trtllm-kvcache.patch`
 
 The TRTLLM patch fixes a Mamba decode path on the older specdec branch for
 batches with multiple draft tokens per request. Current NVIDIA TRTLLM `main` has
 a different speculative/MTP path, so the patch should not be ported blindly.
 
-The Nemo-RL branch already passes `trtllm_cfg.gpu_memory_utilization` through to
-TRTLLM as `KvCacheConfig(free_gpu_memory_fraction=...)`.
+The Nemo-RL patches are smoke-run support patches for the computelab
+environment and this Mamba/specdec configuration.
 
 ## Layout
 
