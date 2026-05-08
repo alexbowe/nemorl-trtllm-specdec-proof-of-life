@@ -17,19 +17,23 @@ if ! command -v git >/dev/null 2>&1; then
   exit 1
 fi
 
+git_public() {
+  git -c credential.helper= "$@"
+}
+
 if [ -d "$install_dir/.git" ]; then
-  git -C "$install_dir" fetch origin "$ref"
-  git -C "$install_dir" restore \
+  git_public -C "$install_dir" fetch origin "$ref"
+  git_public -C "$install_dir" restore \
     --source="origin/$ref" \
     --worktree \
     --staged \
     -- .gitmodules README.md data patches scripts
-  git -C "$install_dir" checkout -B "$ref" "origin/$ref"
-  git -C "$install_dir" submodule sync --recursive
-  git -C "$install_dir" submodule update --init --recursive
+  git_public -C "$install_dir" checkout -B "$ref" "origin/$ref"
+  git_public -C "$install_dir" submodule sync --recursive
+  git_public -C "$install_dir" submodule update --init --recursive
 else
   mkdir -p "$(dirname "$install_dir")"
-  git clone --recurse-submodules --branch "$ref" "$repo_url" "$install_dir"
+  git_public clone --recurse-submodules --branch "$ref" "$repo_url" "$install_dir"
 fi
 
 "$install_dir/scripts/computelab_srun_smoke.sh"
