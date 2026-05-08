@@ -1,0 +1,35 @@
+diff --git a/nemo_rl/models/generation/trtllm/trtllm_worker.py b/nemo_rl/models/generation/trtllm/trtllm_worker.py
+index 96c89a0..a63403d 100644
+--- a/nemo_rl/models/generation/trtllm/trtllm_worker.py
++++ b/nemo_rl/models/generation/trtllm/trtllm_worker.py
+@@ -199,9 +199,27 @@ class TrtllmGenerationWorker:
+     def shutdown(self) -> bool:
+         try:
+             self.stop_http_server()
+-            if self.llm is not None:
+-                del self.llm
+-                self.llm = None
++            llm = self.llm
++            self.llm = None
++            if llm is not None:
++                try:
++                    llm.shutdown()
++                except SystemExit as e:
++                    if e.code != 15:
++                        raise
++                except Exception as e:
++                    message = str(e)
++                    if "placement group was removed" in message or "actor died" in message:
++                        pass
++                    else:
++                        print(f"Error during TRT-LLM shutdown: {e}")
++                        return False
++                finally:
++                    if hasattr(llm, "_executor"):
++                        llm._executor = None
++                    if hasattr(llm, "mpi_session"):
++                        llm.mpi_session = None
++                    del llm
+             gc.collect()
+             torch.cuda.empty_cache()
+             return True

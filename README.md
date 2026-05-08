@@ -110,6 +110,7 @@ The reward is only a smoke-test signal.
 - Pass `KvCacheConfig(enable_block_reuse=False, max_tokens=...,
   free_gpu_memory_fraction=...)` into TRTLLM for the Mamba cache path.
 - Run TRTLLM generation one prompt at a time for this tiny smoke config.
+- Clean up expected TRTLLM/Ray shutdown noise after the smoke has completed.
 - Force anonymous public GitHub fetches in bootstrap to avoid stale credential
   helpers turning public fetches into `403` errors.
 
@@ -122,6 +123,7 @@ The reward is only a smoke-test signal.
   - `patches/trtllm-mamba-multitoken-decode.patch`
   - `patches/nemorl-torch-2.9-alias-patch.patch`
   - `patches/nemorl-trtllm-kvcache.patch`
+  - `patches/nemorl-trtllm-clean-shutdown.patch`
 
 The TRTLLM patch fixes a Mamba decode path on the older specdec branch for
 batches with multiple draft tokens per request. Current NVIDIA TRTLLM `main` has
