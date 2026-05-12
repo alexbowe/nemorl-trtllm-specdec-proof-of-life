@@ -3,16 +3,17 @@ set -euo pipefail
 
 repo_url="${NEMORL_TRTLLM_REPO_URL:-https://github.com/alexbowe/nemorl-trtllm-specdec-proof-of-life.git}"
 ref="${NEMORL_TRTLLM_REF:-main}"
-profile="${CLUSTER_PROFILE:-computelab}"
+profile="${CLUSTER_PROFILE:-aihub}"
 
 if [ -z "${DEV_ROOT:-}" ]; then
   user="${USER:-$(id -un)}"
-  scratch="/home/scratch.${user}_other"
-  if [ -d "$scratch" ]; then
-    DEV_ROOT="$scratch/dev"
-  else
-    DEV_ROOT="$HOME/dev"
-  fi
+  DEV_ROOT="$HOME/dev"
+  for path in /lustre/fsw/portfolios/*/users/"$user"; do
+    if [ -e "$path" ]; then
+      DEV_ROOT="$path/dev"
+      break
+    fi
+  done
 fi
 dev_root="$DEV_ROOT"
 install_dir="${NEMORL_TRTLLM_INSTALL_DIR:-$dev_root/nemorl-trtllm-specdec-proof-of-life}"

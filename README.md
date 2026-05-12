@@ -8,6 +8,27 @@ generation/logprob/training step and exits after `max_num_steps=1`.
 
 ## Quick Run
 
+From an AIHub login shell:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_aihub.sh | bash
+```
+
+The AIHub bootstrap defaults to the first matching Lustre user directory:
+
+```bash
+/lustre/fsw/portfolios/*/users/${USER}/dev
+```
+
+It auto-detects your Slurm account when possible. Override it if needed:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_aihub.sh | env \
+  DEV_ROOT=/lustre/fsw/portfolios/coreai/users/${USER}/dev \
+  AIHUB_ACCOUNT=coreai_lpu_software \
+  bash
+```
+
 From a computelab login shell:
 
 ```bash
@@ -16,27 +37,31 @@ curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proo
   bash
 ```
 
-You must set `DEV_ROOT` to the directory where you want the repo, caches, venv,
-and run outputs to live. On computelab, a common pattern is:
+`DEV_ROOT` is the directory where the repo, caches, venv, and run outputs live.
+On computelab, a common pattern is:
 
 ```bash
 /home/scratch.${USER}_other/dev
 ```
 
 The bootstrap script clones or updates this repo under `$DEV_ROOT`, reserves a
-GPU node with `srun`, starts the TRTLLM `.sqsh` container, runs preflight checks,
-and launches the tiny GRPO smoke.
+GPU node with `srun`, starts a Pyxis/Enroot container, provisions the Python
+runtime if needed, runs preflight checks, and launches the tiny GRPO smoke.
 
 If an old checkout exists, the bootstrap updates the top-level smoke scripts,
 patches, and docs from `origin/main`, then re-syncs submodules. Existing
 submodule downloads are reused.
+
+The first run can be slow because it imports the base container and creates the
+Python venv. Later runs reuse both.
 
 Use `NEMORL_TRTLLM_INSTALL_DIR` only when you intentionally want a separate
 checkout.
 
 Expected defaults next to the repo:
 
-- container: `$DEV_ROOT/trtllm_pytorch2512_trt1014.sqsh`
+- container: `$DEV_ROOT/trtllm_pytorch2512_trt1014.sqsh` if present, otherwise
+  `nvcr.io#nvidia/pytorch:25.12-py3`
 - venv: `$DEV_ROOT/venvs/trtllm-rick-py312`
 
 Override paths as needed:
@@ -44,19 +69,22 @@ Override paths as needed:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env \
   DEV_ROOT=/path/to/scratch/dev \
-  COMPUTELAB_CONTAINER_IMAGE=/path/to/trtllm_pytorch2512_trt1014.sqsh \
+  CONTAINER_IMAGE=/path/to/trtllm_pytorch2512_trt1014.sqsh \
   NEMORL_TRTLLM_VENV=/path/to/venvs/trtllm-rick-py312 \
   bash
 ```
 
 Useful scheduler overrides:
 
-- `COMPUTELAB_PARTITION`
-- `COMPUTELAB_GPUS_PER_NODE`
-- `COMPUTELAB_CPUS_PER_TASK`
-- `COMPUTELAB_TIME`
-- `COMPUTELAB_QUEUE_POLL_SECONDS`
-- `COMPUTELAB_MISSING_JOB_GRACE_SECONDS`
+- `SLURM_ACCOUNT`
+- `SLURM_PARTITION`
+- `SLURM_GPUS_PER_NODE`
+- `SLURM_CPUS_PER_TASK`
+- `SLURM_TIME`
+- `QUEUE_POLL_SECONDS`
+- `MISSING_JOB_GRACE_SECONDS`
+
+The old `COMPUTELAB_*` override names still work for computelab.
 
 ## Manual Run
 
@@ -69,7 +97,7 @@ If the repo is already cloned:
 If already inside a suitable Pyxis/Enroot allocation:
 
 ```bash
-scripts/computelab_smoke.sh
+scripts/smoke.sh
 ```
 
 For step-by-step debugging:
@@ -78,8 +106,9 @@ For step-by-step debugging:
 scripts/bootstrap_submodules.sh
 scripts/apply_trtllm_patch.sh
 scripts/apply_nemorl_patch.sh
+scripts/provision_runtime.sh
 scripts/prepare_trtllm_libs.sh
-scripts/preflight_computelab.sh
+scripts/preflight.sh
 scripts/run_tiny_grpo.sh
 ```
 

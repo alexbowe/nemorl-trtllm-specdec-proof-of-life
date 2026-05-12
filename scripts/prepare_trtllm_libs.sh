@@ -3,8 +3,11 @@ set -euo pipefail
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/.." && pwd)"
+# shellcheck source=scripts/common.sh
+source "$script_dir/common.sh"
 
-dev_root="${DEV_ROOT:-$(dirname "$repo_root")}"
+profile="${CLUSTER_PROFILE:-$(detect_cluster_profile)}"
+dev_root="${DEV_ROOT:-$(default_dev_root "$profile")}"
 trt_repo="${TRTLLM_REPO:-$repo_root/external/TensorRT-LLM}"
 venv="${NEMORL_TRTLLM_VENV:-$dev_root/venvs/trtllm-rick-py312}"
 target_libs="$trt_repo/tensorrt_llm/libs"
