@@ -14,7 +14,7 @@ From an AIHub login shell:
 curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_aihub.sh | bash
 ```
 
-The AIHub bootstrap defaults to the first matching Lustre user directory:
+The AIHub bootstrap defaults to the first writable Lustre user directory:
 
 ```bash
 /lustre/fsw/portfolios/*/users/${USER}/dev

@@ -7,13 +7,22 @@ profile="${CLUSTER_PROFILE:-aihub}"
 
 if [ -z "${DEV_ROOT:-}" ]; then
   user="${USER:-$(id -un)}"
-  DEV_ROOT="$HOME/dev"
   for path in /lustre/fsw/portfolios/*/users/"$user"; do
-    if [ -e "$path" ]; then
+    if [ -d "$path" ] && [ -w "$path" ]; then
       DEV_ROOT="$path/dev"
       break
     fi
   done
+  if [ -z "${DEV_ROOT:-}" ]; then
+    cat >&2 <<EOF
+No writable AIHub Lustre user directory was found.
+Set DEV_ROOT to a writable large-storage path, for example:
+  DEV_ROOT=/lustre/fsw/portfolios/<portfolio>/users/$user/dev
+
+Home is intentionally not used by default because it is usually only 10G.
+EOF
+    exit 1
+  fi
 fi
 dev_root="$DEV_ROOT"
 install_dir="${NEMORL_TRTLLM_INSTALL_DIR:-$dev_root/nemorl-trtllm-specdec-proof-of-life}"
