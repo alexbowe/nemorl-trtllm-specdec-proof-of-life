@@ -153,6 +153,8 @@ The reward is only a smoke-test signal.
 - Clean up expected TRTLLM/Ray shutdown noise after the smoke has completed.
 - Force anonymous public GitHub fetches in bootstrap to avoid stale credential
   helpers turning public fetches into `403` errors.
+- Install torch-extension packages without pip build isolation, so packages like
+  `flash-attn` can see the container's torch during wheel build.
 
 ## Sources
 

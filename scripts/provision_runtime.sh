@@ -13,6 +13,7 @@ trt_repo="${TRTLLM_REPO:-$repo_root/external/TensorRT-LLM}"
 venv="${NEMORL_TRTLLM_VENV:-$dev_root/venvs/trtllm-rick-py312}"
 run_root="${RUN_ROOT:-$dev_root/nemorl-trtllm-smoke}"
 requirements_file="${NEMORL_TRTLLM_REQUIREMENTS:-$repo_root/requirements/runtime.txt}"
+torch_build_requirements_file="${NEMORL_TRTLLM_TORCH_BUILD_REQUIREMENTS:-$repo_root/requirements/torch-build.txt}"
 
 require_command python
 
@@ -63,6 +64,7 @@ PY
 
 "$venv/bin/python" -m pip install --upgrade pip setuptools wheel
 "$venv/bin/python" -m pip install --constraint "$constraints" -r "$requirements_file"
+"$venv/bin/python" -m pip install --no-build-isolation --constraint "$constraints" -r "$torch_build_requirements_file"
 
 # Install local source trees without letting pip replace the container's torch stack.
 "$venv/bin/python" -m pip install --no-deps -e "$repo"
