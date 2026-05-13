@@ -48,6 +48,17 @@ The bootstrap script clones or updates this repo under `$DEV_ROOT`, reserves a
 GPU node with `srun`, starts a Pyxis/Enroot container, provisions the Python
 runtime if needed, runs preflight checks, and launches the tiny GRPO smoke.
 
+The script is standalone in the sense that it does not expect pre-existing
+computelab or AIHub helper scripts, a pre-existing checkout, a pre-existing
+venv, or a pre-built local TRTLLM source tree. It verifies that the cloned repo
+contains the required scripts, patches, requirements, and tiny dataset before
+submitting the Slurm job.
+
+It still needs normal cluster infrastructure: `git`, Slurm with Pyxis/Enroot,
+network access to GitHub/Python package indexes/container registry, a writable
+large-storage `DEV_ROOT`, and access to the model on Hugging Face if your
+environment requires authentication.
+
 If an old checkout exists, the bootstrap updates the top-level smoke scripts,
 patches, and docs from `origin/main`, then re-syncs submodules. Existing
 submodule downloads are reused.

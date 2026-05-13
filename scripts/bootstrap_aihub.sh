@@ -36,6 +36,46 @@ git_public() {
   git -c credential.helper= "$@"
 }
 
+check_standalone_checkout() {
+  local missing=0
+  local required_paths=(
+    ".gitmodules"
+    "data/tiny_math_grpo.jsonl"
+    "requirements/runtime.txt"
+    "patches/trtllm-mamba-multitoken-decode.patch"
+    "patches/nemorl-torch-2.9-alias-patch.patch"
+    "patches/nemorl-trtllm-kvcache.patch"
+    "patches/nemorl-trtllm-clean-shutdown.patch"
+    "patches/nemorl-trtllm-generation-clean-shutdown.patch"
+    "scripts/common.sh"
+    "scripts/bootstrap_submodules.sh"
+    "scripts/apply_trtllm_patch.sh"
+    "scripts/apply_nemorl_patch.sh"
+    "scripts/provision_runtime.sh"
+    "scripts/prepare_trtllm_libs.sh"
+    "scripts/preflight.sh"
+    "scripts/run_tiny_grpo.sh"
+    "scripts/smoke.sh"
+    "scripts/srun_smoke.sh"
+  )
+
+  for path in "${required_paths[@]}"; do
+    if [ ! -e "$install_dir/$path" ]; then
+      echo "Missing required repo file: $install_dir/$path" >&2
+      missing=1
+    fi
+  done
+
+  if [ "$missing" -ne 0 ]; then
+    cat >&2 <<EOF
+The checkout is incomplete. Re-run bootstrap with a new NEMORL_TRTLLM_INSTALL_DIR
+or inspect the checkout at:
+  $install_dir
+EOF
+    exit 1
+  fi
+}
+
 mkdir -p "$dev_root"
 
 if [ -d "$install_dir/.git" ]; then
@@ -52,5 +92,7 @@ else
   mkdir -p "$(dirname "$install_dir")"
   git_public clone --recurse-submodules --branch "$ref" "$repo_url" "$install_dir"
 fi
+
+check_standalone_checkout
 
 DEV_ROOT="$dev_root" CLUSTER_PROFILE="$profile" "$install_dir/scripts/srun_smoke.sh"
