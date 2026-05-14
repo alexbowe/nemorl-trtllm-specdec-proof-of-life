@@ -5,7 +5,7 @@ ninja
 psutil
 colored==2.2.3
 ray[default]==2.49.2
-transformers==4.57.1
+transformers==4.57.3
 datasets>=4.0.0
 rich
 math-verify
