@@ -10,6 +10,7 @@ ref="${NEMORL_TRTLLM_REF:-main}"
 profile="${CLUSTER_PROFILE:-$(detect_cluster_profile)}"
 dev_root="${DEV_ROOT:-$(default_dev_root "$profile")}"
 install_dir="${NEMORL_TRTLLM_INSTALL_DIR:-$dev_root/nemorl-trtllm-specdec-proof-of-life}"
+export GIT_LFS_SKIP_SMUDGE="${GIT_LFS_SKIP_SMUDGE:-1}"
 
 require_command git
 

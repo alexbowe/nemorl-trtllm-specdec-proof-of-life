@@ -155,6 +155,8 @@ The reward is only a smoke-test signal.
   helpers turning public fetches into `403` errors.
 - Install torch-extension packages without pip build isolation, so packages like
   `flash-attn` can see the container's torch during wheel build.
+- Skip Git LFS smudge by default during clone/submodule setup; the smoke does
+  not need LFS payloads and this avoids slow first-run checkouts.
 
 ## Sources
 

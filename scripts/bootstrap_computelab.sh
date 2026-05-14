@@ -4,6 +4,7 @@ set -euo pipefail
 repo_url="${NEMORL_TRTLLM_REPO_URL:-https://github.com/alexbowe/nemorl-trtllm-specdec-proof-of-life.git}"
 ref="${NEMORL_TRTLLM_REF:-main}"
 profile="${CLUSTER_PROFILE:-computelab}"
+export GIT_LFS_SKIP_SMUDGE="${GIT_LFS_SKIP_SMUDGE:-1}"
 
 if [ -z "${DEV_ROOT:-}" ]; then
   user="${USER:-$(id -un)}"
