@@ -13,7 +13,7 @@ venv="${NEMORL_TRTLLM_VENV:-$dev_root/venvs/trtllm-rick-py312}"
 target_libs="$trt_repo/tensorrt_llm/libs"
 required_lib="libnvinfer_plugin_tensorrt_llm.so"
 
-if [ -f "$target_libs/$required_lib" ]; then
+if [ -e "$target_libs/$required_lib" ] && [ ! -L "$target_libs/$required_lib" ]; then
   echo "TRTLLM plugin libs already present: $target_libs"
   exit 0
 fi
@@ -50,6 +50,21 @@ fi
 
 mkdir -p "$target_libs"
 for lib in "$source_libs"/*.so; do
-  ln -s "$lib" "$target_libs/$(basename "$lib")"
+  target="$target_libs/$(basename "$lib")"
+  if [ -L "$target" ]; then
+    if [ "$(readlink "$target")" != "$lib" ]; then
+      ln -sfn "$lib" "$target"
+    fi
+  elif [ -e "$target" ]; then
+    continue
+  else
+    ln -s "$lib" "$target"
+  fi
 done
+
+if [ ! -e "$target_libs/$required_lib" ]; then
+  echo "Failed to link required TRTLLM plugin lib: $target_libs/$required_lib" >&2
+  exit 1
+fi
+
 echo "Linked TRTLLM plugin libs from: $source_libs"
