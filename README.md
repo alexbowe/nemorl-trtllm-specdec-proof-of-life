@@ -159,6 +159,8 @@ The reward is only a smoke-test signal.
   not need LFS payloads and this avoids slow first-run checkouts.
 - Align package pins like `transformers` and `datasets` with the versions
   required by the TRTLLM 1.2.0 wheel.
+- Install TRTLLM and vLLM wheels with `--no-deps` so their mutually
+  incompatible optional transitive pins do not break this TRTLLM-only smoke.
 
 ## Sources
 

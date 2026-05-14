@@ -43,6 +43,7 @@ check_standalone_checkout() {
     ".gitmodules"
     "data/tiny_math_grpo.jsonl"
     "requirements/runtime.txt"
+    "requirements/no-deps.txt"
     "requirements/torch-build.txt"
     "patches/trtllm-mamba-multitoken-decode.patch"
     "patches/nemorl-torch-2.9-alias-patch.patch"

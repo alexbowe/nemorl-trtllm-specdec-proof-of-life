@@ -28,6 +28,4 @@ mlflow>=3.5.0,<3.6.0
 swanlab
 pyzmq
 cuda-python
-tensorrt_llm==1.2.0
-vllm==0.11.2
 nvidia-modelopt
