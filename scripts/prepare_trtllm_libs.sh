@@ -49,16 +49,31 @@ EOF
 fi
 
 mkdir -p "$target_libs"
-for lib in "$source_libs"/*.so; do
-  target="$target_libs/$(basename "$lib")"
+
+link_artifact() {
+  local source="$1"
+  local target="$2"
+
   if [ -L "$target" ]; then
-    if [ "$(readlink "$target")" != "$lib" ]; then
-      ln -sfn "$lib" "$target"
+    if [ "$(readlink "$target")" != "$source" ]; then
+      ln -sfn "$source" "$target"
     fi
   elif [ -e "$target" ]; then
-    continue
+    return
   else
-    ln -s "$lib" "$target"
+    ln -s "$source" "$target"
+  fi
+}
+
+for lib in "$source_libs"/*.so; do
+  link_artifact "$lib" "$target_libs/$(basename "$lib")"
+done
+
+source_pkg="$(cd -- "$source_libs/.." && pwd)"
+target_pkg="$(cd -- "$target_libs/.." && pwd)"
+for artifact in "$source_pkg"/*.so "$source_pkg"/bindings; do
+  if [ -e "$artifact" ]; then
+    link_artifact "$artifact" "$target_pkg/$(basename "$artifact")"
   fi
 done
 

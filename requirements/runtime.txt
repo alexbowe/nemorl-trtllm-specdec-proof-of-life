@@ -29,3 +29,4 @@ swanlab
 pyzmq
 cuda-python
 nvidia-modelopt
+mpi4py

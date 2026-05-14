@@ -145,6 +145,8 @@ The reward is only a smoke-test signal.
   with `draft_target`.
 - Link built TRTLLM plugin `.so` files into the fresh source checkout, because a
   clean submodule checkout does not include compiled TRTLLM libraries.
+- Link TRTLLM wheel package extensions such as `tensorrt_llm.bindings` into the
+  source checkout when running patched source over the wheel install.
 - Relax Nemo-RL's PyTorch alias patch guard from `2.9.0` to `2.9.x` for the
   validated `2.9.1+cu130` venv.
 - Pass `KvCacheConfig(enable_block_reuse=False, max_tokens=...,
