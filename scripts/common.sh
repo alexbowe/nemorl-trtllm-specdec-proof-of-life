@@ -50,6 +50,29 @@ default_dev_root() {
   esac
 }
 
+default_venv() {
+  local dev_root="$1"
+  local tag
+  tag="$(python - <<'PY'
+import re
+import sys
+
+py = f"py{sys.version_info.major}{sys.version_info.minor}"
+try:
+    import torch
+
+    torch_version = torch.__version__.split("+", 1)[0]
+    cuda_version = torch.version.cuda or "cpu"
+    tag = f"{py}-torch{torch_version}-cu{cuda_version}"
+except Exception:
+    tag = f"{py}-torchunknown"
+
+print(re.sub(r"[^A-Za-z0-9._-]+", "_", tag))
+PY
+)"
+  echo "$dev_root/venvs/trtllm-rick-$tag"
+}
+
 require_command() {
   local command_name="$1"
   if ! command -v "$command_name" >/dev/null 2>&1; then

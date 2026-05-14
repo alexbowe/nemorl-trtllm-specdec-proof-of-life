@@ -9,7 +9,7 @@ source "$script_dir/common.sh"
 profile="${CLUSTER_PROFILE:-$(detect_cluster_profile)}"
 dev_root="${DEV_ROOT:-$(default_dev_root "$profile")}"
 trt_repo="${TRTLLM_REPO:-$repo_root/external/TensorRT-LLM}"
-venv="${NEMORL_TRTLLM_VENV:-$dev_root/venvs/trtllm-rick-py312}"
+venv="${NEMORL_TRTLLM_VENV:-$(default_venv "$dev_root")}"
 target_libs="$trt_repo/tensorrt_llm/libs"
 required_lib="libnvinfer_plugin_tensorrt_llm.so"
 

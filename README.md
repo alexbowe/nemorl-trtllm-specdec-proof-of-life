@@ -72,8 +72,9 @@ checkout.
 Expected defaults next to the repo:
 
 - container: `$DEV_ROOT/trtllm_pytorch2512_trt1014.sqsh` if present, otherwise
-  `nvcr.io#nvidia/pytorch:25.12-py3`
-- venv: `$DEV_ROOT/venvs/trtllm-rick-py312`
+  `nvcr.io#nvidia/pytorch:25.09-py3` on AIHub and
+  `nvcr.io#nvidia/pytorch:25.12-py3` elsewhere
+- venv: `$DEV_ROOT/venvs/trtllm-rick-<python-and-torch-version>`
 
 Override paths as needed:
 
@@ -81,7 +82,7 @@ Override paths as needed:
 curl -fsSL https://raw.githubusercontent.com/alexbowe/nemorl-trtllm-specdec-proof-of-life/main/scripts/bootstrap_computelab.sh | env \
   DEV_ROOT=/path/to/scratch/dev \
   CONTAINER_IMAGE=/path/to/trtllm_pytorch2512_trt1014.sqsh \
-  NEMORL_TRTLLM_VENV=/path/to/venvs/trtllm-rick-py312 \
+  NEMORL_TRTLLM_VENV=/path/to/venvs/trtllm-rick-custom \
   bash
 ```
 
