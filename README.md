@@ -161,8 +161,8 @@ The reward is only a smoke-test signal.
   required by the TRTLLM 1.2.0 wheel.
 - Install TRTLLM and vLLM wheels with `--no-deps` so their mutually
   incompatible optional transitive pins do not break this TRTLLM-only smoke.
-- Put pip build temp files under the run root, avoiding cross-filesystem wheel
-  rename failures while building torch extension packages.
+- Put pip build temp files under the run root, and disable pip wheel caching for
+  torch-extension builds to avoid cross-filesystem wheel rename failures.
 
 ## Sources
 

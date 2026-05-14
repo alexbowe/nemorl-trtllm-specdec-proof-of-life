@@ -67,7 +67,7 @@ PY
 "$venv/bin/python" -m pip install --upgrade pip setuptools wheel
 "$venv/bin/python" -m pip install --constraint "$constraints" -r "$requirements_file"
 "$venv/bin/python" -m pip install --no-deps --constraint "$constraints" -r "$no_deps_requirements_file"
-"$venv/bin/python" -m pip install --no-build-isolation --constraint "$constraints" -r "$torch_build_requirements_file"
+"$venv/bin/python" -m pip install --no-build-isolation --no-cache-dir --constraint "$constraints" -r "$torch_build_requirements_file"
 
 # Install local source trees without letting pip replace the container's torch stack.
 "$venv/bin/python" -m pip install --no-deps -e "$repo"
