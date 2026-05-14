@@ -49,7 +49,7 @@ if [ -z "$container_image" ]; then
   if [ -f "$dev_root/trtllm_pytorch2512_trt1014.sqsh" ]; then
     container_image="$dev_root/trtllm_pytorch2512_trt1014.sqsh"
   elif [ "$profile" = "aihub" ]; then
-    container_image="nvcr.io#nvidia/pytorch:25.09-py3"
+    container_image="nvcr.io#nvidia/pytorch:25.10-py3"
   else
     container_image="nvcr.io#nvidia/pytorch:25.12-py3"
   fi
