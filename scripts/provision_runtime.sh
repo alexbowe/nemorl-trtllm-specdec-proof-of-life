@@ -36,7 +36,7 @@ if sys.version_info < (3, 12):
 print(f"bootstrap_python={sys.version.split()[0]}")
 PY
 
-mkdir -p "$(dirname "$venv")" "$run_root/pip-cache"
+mkdir -p "$(dirname "$venv")" "$run_root/pip-cache" "$run_root/tmp"
 
 if [ ! -x "$venv/bin/python" ]; then
   echo "Creating venv: $venv"
@@ -45,6 +45,7 @@ fi
 
 export PIP_CACHE_DIR="${PIP_CACHE_DIR:-$run_root/pip-cache}"
 export PIP_EXTRA_INDEX_URL="${PIP_EXTRA_INDEX_URL:-https://pypi.nvidia.com}"
+export TMPDIR="${TMPDIR:-$run_root/tmp}"
 constraints="$run_root/runtime-constraints.txt"
 "$venv/bin/python" - "$constraints" <<'PY'
 import importlib
