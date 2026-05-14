@@ -72,10 +72,21 @@ check "native libraries" - <<'PY'
 import ctypes
 import ctypes.util
 
-required = ["libcudart.so.12", "libnccl.so.2"]
-for lib in required:
-    ctypes.CDLL(lib)
-    print(f"{lib}: OK", flush=True)
+required = {
+    "cudart": ["libcudart.so.13", "libcudart.so.12", "libcudart.so"],
+    "nccl": ["libnccl.so.2", "libnccl.so"],
+}
+for name, fallbacks in required.items():
+    candidates = [ctypes.util.find_library(name), *fallbacks]
+    for lib in filter(None, candidates):
+        try:
+            ctypes.CDLL(lib)
+            print(f"{name}: OK {lib}", flush=True)
+            break
+        except OSError:
+            continue
+    else:
+        raise SystemExit(f"Could not load native library: {name}")
 print("nccl_find", ctypes.util.find_library("nccl"), flush=True)
 PY
 
