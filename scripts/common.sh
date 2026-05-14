@@ -61,7 +61,7 @@ py = f"py{sys.version_info.major}{sys.version_info.minor}"
 try:
     import torch
 
-    torch_version = torch.__version__.split("+", 1)[0]
+    torch_version = torch.__version__
     cuda_version = torch.version.cuda or "cpu"
     tag = f"{py}-torch{torch_version}-cu{cuda_version}"
 except Exception:
