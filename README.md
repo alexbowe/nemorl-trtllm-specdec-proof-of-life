@@ -157,7 +157,8 @@ The reward is only a smoke-test signal.
   `flash-attn` can see the container's torch during wheel build.
 - Skip Git LFS smudge by default during clone/submodule setup; the smoke does
   not need LFS payloads and this avoids slow first-run checkouts.
-- Pin `transformers` to the version required by the TRTLLM 1.2.0 wheel.
+- Align package pins like `transformers` and `datasets` with the versions
+  required by the TRTLLM 1.2.0 wheel.
 
 ## Sources
 
