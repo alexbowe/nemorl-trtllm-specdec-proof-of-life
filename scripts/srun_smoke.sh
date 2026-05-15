@@ -20,6 +20,7 @@ case "$profile" in
     time_limit="${SLURM_TIME:-${AIHUB_TIME:-02:00:00}}"
     account="${SLURM_ACCOUNT:-${AIHUB_ACCOUNT:-}}"
     exclude="${SLURM_EXCLUDE:-${AIHUB_EXCLUDE:-}}"
+    nodelist="${SLURM_NODELIST:-${AIHUB_NODELIST:-}}"
     if [ -z "$account" ]; then
       account="$(
         sacctmgr -nP show assoc where user="$(id -un)" format=account 2>/dev/null \
@@ -37,6 +38,7 @@ case "$profile" in
     time_limit="${SLURM_TIME:-${COMPUTELAB_TIME:-02:00:00}}"
     account="${SLURM_ACCOUNT:-${COMPUTELAB_ACCOUNT:-}}"
     exclude="${SLURM_EXCLUDE:-${COMPUTELAB_EXCLUDE:-}}"
+    nodelist="${SLURM_NODELIST:-${COMPUTELAB_NODELIST:-}}"
     ;;
   *)
     partition="${SLURM_PARTITION:-batch_short}"
@@ -45,6 +47,7 @@ case "$profile" in
     time_limit="${SLURM_TIME:-02:00:00}"
     account="${SLURM_ACCOUNT:-}"
     exclude="${SLURM_EXCLUDE:-}"
+    nodelist="${SLURM_NODELIST:-}"
     ;;
 esac
 
@@ -84,13 +87,16 @@ fi
 if [ -n "$exclude" ]; then
   srun_args+=(--exclude="$exclude")
 fi
+if [ -n "$nodelist" ]; then
+  srun_args+=(--nodelist="$nodelist")
+fi
 
 printf 'profile=%s\n' "$profile"
 printf 'dev_root=%s\n' "$dev_root"
 printf 'enroot_cache=%s\n' "$ENROOT_CACHE_PATH"
 printf 'container_image=%s\n' "$container_image"
-printf 'partition=%s gpus=%s cpus=%s time=%s account=%s exclude=%s\n' \
-  "$partition" "$gpus_per_node" "$cpus_per_task" "$time_limit" "${account:-<none>}" "${exclude:-<none>}"
+printf 'partition=%s gpus=%s cpus=%s time=%s account=%s exclude=%s nodelist=%s\n' \
+  "$partition" "$gpus_per_node" "$cpus_per_task" "$time_limit" "${account:-<none>}" "${exclude:-<none>}" "${nodelist:-<none>}"
 
 srun "${srun_args[@]}" bash -lc 'scripts/smoke.sh' 2> >(tee "$srun_log" >&2) &
 
