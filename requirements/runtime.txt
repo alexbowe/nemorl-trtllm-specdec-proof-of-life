@@ -31,3 +31,4 @@ cuda-python
 nvidia-modelopt
 mpi4py
 blake3
+torchao>=0.14.1,<0.16.0
