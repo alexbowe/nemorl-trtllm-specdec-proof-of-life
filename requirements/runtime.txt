@@ -41,3 +41,4 @@ triton==3.5.1
 ordered-set
 llguidance==0.7.29
 xgrammar==0.1.25
+mistral-common==1.8.6
