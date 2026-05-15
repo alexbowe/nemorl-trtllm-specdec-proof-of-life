@@ -27,8 +27,15 @@ num_generations_per_prompt="${NUM_GENERATIONS_PER_PROMPT:-2}"
 train_global_batch_size="${TRAIN_GLOBAL_BATCH_SIZE:-2}"
 train_micro_batch_size="${TRAIN_MICRO_BATCH_SIZE:-1}"
 max_total_sequence_length="${MAX_TOTAL_SEQUENCE_LENGTH:-512}"
+cluster_num_nodes="${CLUSTER_NUM_NODES:-1}"
 cluster_gpus_per_node="${CLUSTER_GPUS_PER_NODE:-2}"
-inference_gpus_per_node="${INFERENCE_GPUS_PER_NODE:-1}"
+if [ "$cluster_num_nodes" -gt 1 ]; then
+  inference_gpus_per_node="${INFERENCE_GPUS_PER_NODE:-$cluster_gpus_per_node}"
+  inference_num_nodes="${INFERENCE_NUM_NODES:-1}"
+else
+  inference_gpus_per_node="${INFERENCE_GPUS_PER_NODE:-1}"
+  inference_num_nodes="${INFERENCE_NUM_NODES:-}"
+fi
 dtensor_v2="${DTENSOR_V2:-false}"
 dtensor_tensor_parallel_size="${DTENSOR_TENSOR_PARALLEL_SIZE:-1}"
 dtensor_context_parallel_size="${DTENSOR_CONTEXT_PARALLEL_SIZE:-1}"
@@ -141,7 +148,7 @@ PY
   exit $?
 fi
 
-"$venv/bin/python" - "$config_path" "$run_root/logs" "$model_name" "$spec_model" "$spec_decoding_method" "$max_draft_len" "$max_new_tokens" "$trtllm_gpu_memory_utilization" "$trtllm_max_num_tokens" "$trtllm_max_batch_size" "$generation_batch_size" "$num_generations_per_prompt" "$train_global_batch_size" "$train_micro_batch_size" "$max_total_sequence_length" "$cluster_gpus_per_node" "$inference_gpus_per_node" "$dtensor_v2" "$dtensor_tensor_parallel_size" "$dtensor_context_parallel_size" "$dtensor_cpu_offload" "$dtensor_activation_checkpointing" "$dtensor_sequence_parallel" <<'PY'
+"$venv/bin/python" - "$config_path" "$run_root/logs" "$model_name" "$spec_model" "$spec_decoding_method" "$max_draft_len" "$max_new_tokens" "$trtllm_gpu_memory_utilization" "$trtllm_max_num_tokens" "$trtllm_max_batch_size" "$generation_batch_size" "$num_generations_per_prompt" "$train_global_batch_size" "$train_micro_batch_size" "$max_total_sequence_length" "$cluster_num_nodes" "$cluster_gpus_per_node" "$inference_gpus_per_node" "$inference_num_nodes" "$dtensor_v2" "$dtensor_tensor_parallel_size" "$dtensor_context_parallel_size" "$dtensor_cpu_offload" "$dtensor_activation_checkpointing" "$dtensor_sequence_parallel" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -163,14 +170,16 @@ num_generations_per_prompt = int(sys.argv[12])
 train_global_batch_size = int(sys.argv[13])
 train_micro_batch_size = int(sys.argv[14])
 max_total_sequence_length = int(sys.argv[15])
-cluster_gpus_per_node = int(sys.argv[16])
-inference_gpus_per_node = int(sys.argv[17])
-dtensor_v2 = sys.argv[18].lower() in {"1", "true", "yes", "on"}
-dtensor_tensor_parallel_size = int(sys.argv[19])
-dtensor_context_parallel_size = int(sys.argv[20])
-dtensor_cpu_offload = sys.argv[21].lower() in {"1", "true", "yes", "on"}
-dtensor_activation_checkpointing = sys.argv[22].lower() in {"1", "true", "yes", "on"}
-dtensor_sequence_parallel = sys.argv[23].lower() in {"1", "true", "yes", "on"}
+cluster_num_nodes = int(sys.argv[16])
+cluster_gpus_per_node = int(sys.argv[17])
+inference_gpus_per_node = int(sys.argv[18])
+inference_num_nodes = int(sys.argv[19]) if sys.argv[19] else None
+dtensor_v2 = sys.argv[20].lower() in {"1", "true", "yes", "on"}
+dtensor_tensor_parallel_size = int(sys.argv[21])
+dtensor_context_parallel_size = int(sys.argv[22])
+dtensor_cpu_offload = sys.argv[23].lower() in {"1", "true", "yes", "on"}
+dtensor_activation_checkpointing = sys.argv[24].lower() in {"1", "true", "yes", "on"}
+dtensor_sequence_parallel = sys.argv[25].lower() in {"1", "true", "yes", "on"}
 cfg = load_config("configs/grpo_qwen3_1.7b_specdec.yaml")
 run_root = Path(config_path).parent
 tiny_data_path = run_root / "tiny_math_grpo.jsonl"
@@ -234,7 +243,7 @@ else:
     cfg.policy.generation.trtllm_cfg.speculative_decoding.speculative_model = spec_model
 cfg.policy.generation.colocated.enabled = False
 cfg.policy.generation.colocated.resources.gpus_per_node = inference_gpus_per_node
-cfg.policy.generation.colocated.resources.num_nodes = None
+cfg.policy.generation.colocated.resources.num_nodes = inference_num_nodes
 
 cfg.data.max_input_seq_length = max_total_sequence_length
 cfg.data.dataset_name = "ResponseDataset"
@@ -259,7 +268,7 @@ cfg.logger.monitor_gpus = False
 cfg.logger.mongodb_enabled = False
 
 cfg.cluster.gpus_per_node = cluster_gpus_per_node
-cfg.cluster.num_nodes = 1
+cfg.cluster.num_nodes = cluster_num_nodes
 
 Path(config_path).parent.mkdir(parents=True, exist_ok=True)
 OmegaConf.save(config=cfg, f=config_path)
@@ -270,8 +279,17 @@ print(f"tiny_data={tiny_data_path}")
 print(f"model={resolved['policy']['model_name']}")
 print(f"backend={resolved['policy']['generation']['backend']}")
 print(f"cluster_gpus={resolved['cluster']['gpus_per_node']}")
-print(f"train_gpus={resolved['cluster']['gpus_per_node'] - resolved['policy']['generation']['colocated']['resources']['gpus_per_node']}")
+print(f"cluster_nodes={resolved['cluster']['num_nodes']}")
+if resolved["cluster"]["num_nodes"] > 1:
+    train_nodes = resolved["cluster"]["num_nodes"] - resolved["policy"]["generation"]["colocated"]["resources"]["num_nodes"]
+    train_gpus = resolved["cluster"]["gpus_per_node"]
+else:
+    train_nodes = 1
+    train_gpus = resolved["cluster"]["gpus_per_node"] - resolved["policy"]["generation"]["colocated"]["resources"]["gpus_per_node"]
+print(f"train_nodes={train_nodes}")
+print(f"train_gpus={train_gpus}")
 print(f"inference_gpus={resolved['policy']['generation']['colocated']['resources']['gpus_per_node']}")
+print(f"inference_nodes={resolved['policy']['generation']['colocated']['resources']['num_nodes']}")
 print(f"max_steps={resolved['grpo']['max_num_steps']}")
 print(f"max_seq={resolved['policy']['max_total_sequence_length']}")
 print(f"max_new_tokens={resolved['policy']['generation']['max_new_tokens']}")
