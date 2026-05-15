@@ -8,6 +8,7 @@ source "$script_dir/common.sh"
 repo_root="$(repo_root_for_script "${BASH_SOURCE[0]}")"
 profile="${CLUSTER_PROFILE:-$(detect_cluster_profile)}"
 dev_root="${DEV_ROOT:-$(default_dev_root "$profile")}"
+run_root="${RUN_ROOT:-$dev_root/nemorl-trtllm-smoke}"
 slurm_user="${SLURM_USER:-${USER:-$(id -un)}}"
 job_name="${SLURM_JOB_NAME:-nemorl-trtllm-smoke-$$}"
 
@@ -58,7 +59,10 @@ if [ -z "$container_image" ]; then
   fi
 fi
 
-mkdir -p "$dev_root"
+mkdir -p "$dev_root" "$run_root/enroot-cache" "$run_root/enroot-data" "$run_root/enroot-tmp"
+export ENROOT_CACHE_PATH="${ENROOT_CACHE_PATH:-$run_root/enroot-cache}"
+export ENROOT_DATA_PATH="${ENROOT_DATA_PATH:-$run_root/enroot-data}"
+export ENROOT_TEMP_PATH="${ENROOT_TEMP_PATH:-$run_root/enroot-tmp}"
 cd "$repo_root"
 
 srun_log="$(mktemp "${TMPDIR:-/tmp}/nemorl-trtllm-srun.XXXXXX")"
@@ -83,6 +87,7 @@ fi
 
 printf 'profile=%s\n' "$profile"
 printf 'dev_root=%s\n' "$dev_root"
+printf 'enroot_cache=%s\n' "$ENROOT_CACHE_PATH"
 printf 'container_image=%s\n' "$container_image"
 printf 'partition=%s gpus=%s cpus=%s time=%s account=%s exclude=%s\n' \
   "$partition" "$gpus_per_node" "$cpus_per_task" "$time_limit" "${account:-<none>}" "${exclude:-<none>}"
