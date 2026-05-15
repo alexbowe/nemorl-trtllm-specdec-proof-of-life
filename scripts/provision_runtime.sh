@@ -52,7 +52,7 @@ import importlib
 import sys
 
 path = sys.argv[1]
-packages = ["torch", "torchvision", "torchaudio", "triton"]
+packages = ["torch", "torchvision", "torchaudio"]
 with open(path, "w", encoding="utf-8") as f:
     for package in packages:
         try:
