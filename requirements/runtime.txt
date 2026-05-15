@@ -32,3 +32,4 @@ nvidia-modelopt
 mpi4py
 blake3
 torchao>=0.14.1,<0.16.0
+onnx-graphsurgeon>=0.5.2
