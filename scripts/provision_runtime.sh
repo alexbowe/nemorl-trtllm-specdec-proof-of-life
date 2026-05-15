@@ -64,10 +64,44 @@ with open(path, "w", encoding="utf-8") as f:
             f.write(f"{package}=={version}\n")
 PY
 
+if [ -z "${TORCH_CUDA_ARCH_LIST:-}" ]; then
+  detected_archs="$("$venv/bin/python" - <<'PY'
+import torch
+
+if not torch.cuda.is_available():
+    raise SystemExit(0)
+
+archs = {
+    f"{major}.{minor}"
+    for index in range(torch.cuda.device_count())
+    for major, minor in [torch.cuda.get_device_capability(index)]
+}
+print(";".join(sorted(archs)))
+PY
+)"
+  if [ -n "$detected_archs" ]; then
+    export TORCH_CUDA_ARCH_LIST="$detected_archs"
+  fi
+fi
+printf 'torch_cuda_arch_list=%s\n' "${TORCH_CUDA_ARCH_LIST:-<unset>}"
+
+install_torch_build_deps="${NEMORL_TRTLLM_INSTALL_TORCH_BUILD_DEPS:-}"
+if [ -z "$install_torch_build_deps" ]; then
+  if [ "${NEMORL_TRTLLM_SMOKE_MODE:-run}" = "preflight" ]; then
+    install_torch_build_deps=0
+  else
+    install_torch_build_deps=1
+  fi
+fi
+
 "$venv/bin/python" -m pip install --upgrade pip setuptools wheel
 "$venv/bin/python" -m pip install --constraint "$constraints" -r "$requirements_file"
 "$venv/bin/python" -m pip install --no-deps --constraint "$constraints" -r "$no_deps_requirements_file"
-"$venv/bin/python" -m pip install --no-build-isolation --no-cache-dir --constraint "$constraints" -r "$torch_build_requirements_file"
+if [ "$install_torch_build_deps" = "1" ]; then
+  "$venv/bin/python" -m pip install --no-build-isolation --no-cache-dir --constraint "$constraints" -r "$torch_build_requirements_file"
+else
+  echo "Skipping torch build dependencies for preflight"
+fi
 
 # Install local source trees without letting pip replace the container's torch stack.
 "$venv/bin/python" -m pip install --no-deps -e "$repo"

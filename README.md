@@ -100,6 +100,14 @@ Useful scheduler overrides:
 The cluster-specific names also work: `AIHUB_*` on AIHub and `COMPUTELAB_*` on
 computelab.
 
+Useful runtime overrides:
+
+- `NEMORL_TRTLLM_SMOKE_MODE=preflight` runs setup plus imports/config checks only.
+- `NEMORL_TRTLLM_INSTALL_TORCH_BUILD_DEPS=1` forces torch-extension deps during
+  preflight. Normal GRPO runs install them automatically.
+- `TORCH_CUDA_ARCH_LIST` overrides the detected GPU arch list for torch-extension
+  builds.
+
 ## Manual Run
 
 If the repo is already cloned:
