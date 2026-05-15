@@ -64,7 +64,8 @@ with open(path, "w", encoding="utf-8") as f:
             f.write(f"{package}=={version}\n")
 PY
 
-if [ -z "${TORCH_CUDA_ARCH_LIST:-}" ]; then
+detect_cuda_archs="${NEMORL_TRTLLM_DETECT_CUDA_ARCH_LIST:-1}"
+if [ "$detect_cuda_archs" = "1" ]; then
   detected_archs="$("$venv/bin/python" - <<'PY'
 import torch
 
