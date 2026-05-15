@@ -71,7 +71,7 @@ done
 
 source_pkg="$(cd -- "$source_libs/.." && pwd)"
 target_pkg="$(cd -- "$target_libs/.." && pwd)"
-for artifact in "$source_pkg"/*.so "$source_pkg"/bindings; do
+for artifact in "$source_pkg"/*.so "$source_pkg"/*.pyi "$source_pkg"/bindings "$source_pkg"/deep_gemm; do
   if [ -e "$artifact" ]; then
     link_artifact "$artifact" "$target_pkg/$(basename "$artifact")"
   fi
