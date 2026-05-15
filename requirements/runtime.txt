@@ -39,3 +39,5 @@ sentencepiece>=0.1.99
 flashinfer-python~=0.6.1
 triton==3.5.1
 ordered-set
+llguidance==0.7.29
+xgrammar==0.1.25
