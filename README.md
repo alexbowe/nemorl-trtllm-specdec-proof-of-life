@@ -90,13 +90,15 @@ Useful scheduler overrides:
 
 - `SLURM_ACCOUNT`
 - `SLURM_PARTITION`
+- `SLURM_EXCLUDE`
 - `SLURM_GPUS_PER_NODE`
 - `SLURM_CPUS_PER_TASK`
 - `SLURM_TIME`
 - `QUEUE_POLL_SECONDS`
 - `MISSING_JOB_GRACE_SECONDS`
 
-The old `COMPUTELAB_*` override names still work for computelab.
+The cluster-specific names also work: `AIHUB_*` on AIHub and `COMPUTELAB_*` on
+computelab.
 
 ## Manual Run
 
