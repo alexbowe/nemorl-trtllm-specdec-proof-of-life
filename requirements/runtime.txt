@@ -38,3 +38,4 @@ h5py==3.12.1
 sentencepiece>=0.1.99
 flashinfer-python~=0.6.1
 triton==3.5.1
+ordered-set
