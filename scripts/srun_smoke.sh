@@ -21,7 +21,7 @@ case "$profile" in
     account="${SLURM_ACCOUNT:-${AIHUB_ACCOUNT:-}}"
     exclude="${SLURM_EXCLUDE:-${AIHUB_EXCLUDE:-}}"
     nodelist="${SLURM_NODELIST:-${AIHUB_NODELIST:-}}"
-    mem="${SLURM_MEM:-${AIHUB_MEM:-64G}}"
+    mem="${SLURM_MEM:-${AIHUB_MEM:-128G}}"
     if [ -z "$account" ]; then
       account="$(
         sacctmgr -nP show assoc where user="$(id -un)" format=account 2>/dev/null \

@@ -75,6 +75,7 @@ Expected defaults next to the repo:
   `nvcr.io#nvidia/pytorch:25.10-py3` on AIHub and
   `nvcr.io#nvidia/pytorch:25.12-py3` elsewhere
 - venv: `$DEV_ROOT/venvs/trtllm-rick-<python-and-torch-version>`
+- AIHub Slurm shape: 1 node, 2 GPUs, 32 CPUs, 128G RAM, 2 hours
 
 Override paths as needed:
 
