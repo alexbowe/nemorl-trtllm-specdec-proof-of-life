@@ -28,6 +28,7 @@ mlflow>=3.5.0,<3.6.0
 swanlab
 pyzmq
 cuda-python
+nvidia-cuda-runtime-cu12
 nvidia-modelopt
 mpi4py
 blake3
