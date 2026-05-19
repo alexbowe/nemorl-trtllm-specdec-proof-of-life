@@ -26,6 +26,7 @@ pillow>=11.3.0
 num2words>=0.5.14
 mlflow>=3.5.0,<3.6.0
 swanlab
+wandb
 pyzmq
 cuda-python
 nvidia-cuda-runtime-cu12
