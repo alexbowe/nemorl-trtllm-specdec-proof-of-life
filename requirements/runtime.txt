@@ -30,6 +30,7 @@ wandb
 pyzmq
 cuda-python
 nvidia-cuda-runtime-cu12
+etcd-sdk-python==0.0.7
 nvidia-modelopt
 mpi4py
 blake3
