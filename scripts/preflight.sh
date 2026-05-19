@@ -106,6 +106,13 @@ print("PyNcclCommunicator", PyNcclCommunicator, flush=True)
 print("StatelessProcessGroup", StatelessProcessGroup, flush=True)
 PY
 
+check "trtllm pyexecutor imports" - <<'PY'
+import importlib
+
+mod = importlib.import_module("tensorrt_llm._torch.pyexecutor.py_executor_creator")
+print("py_executor_creator", getattr(mod, "__file__", ""), flush=True)
+PY
+
 check "nemo rl config load" - <<'PY'
 from nemo_rl.utils.config import load_config
 from omegaconf import OmegaConf
