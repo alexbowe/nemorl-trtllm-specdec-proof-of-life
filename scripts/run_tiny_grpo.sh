@@ -27,6 +27,7 @@ num_generations_per_prompt="${NUM_GENERATIONS_PER_PROMPT:-2}"
 train_global_batch_size="${TRAIN_GLOBAL_BATCH_SIZE:-2}"
 train_micro_batch_size="${TRAIN_MICRO_BATCH_SIZE:-1}"
 max_total_sequence_length="${MAX_TOTAL_SEQUENCE_LENGTH:-512}"
+ray_root="${RAY_ROOT:-/tmp/nemorl-ray-${USER:-user}-${SLURM_JOB_ID:-$$}}"
 cluster_num_nodes="${CLUSTER_NUM_NODES:-1}"
 cluster_gpus_per_node="${CLUSTER_GPUS_PER_NODE:-2}"
 if [ "$cluster_num_nodes" -gt 1 ]; then
@@ -44,7 +45,7 @@ dtensor_activation_checkpointing="${DTENSOR_ACTIVATION_CHECKPOINTING:-false}"
 dtensor_sequence_parallel="${DTENSOR_SEQUENCE_PARALLEL:-false}"
 stamp="$(date +%Y%m%d_%H%M%S)"
 
-mkdir -p "$run_root" "$run_root/logs" "$run_root/hf-cache" "$run_root/ray" "$run_root/tmp" \
+mkdir -p "$run_root" "$run_root/logs" "$run_root/hf-cache" "$ray_root" "$ray_root/tmp" \
   "$run_root/triton-cache" "$run_root/torchinductor-cache" "$run_root/xdg-cache"
 
 venv_site="$venv/lib/python3.12/site-packages"
@@ -70,8 +71,8 @@ export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$run_root/xdg-cache}"
 export TOKENIZERS_PARALLELISM=false
 unset RAY_ADDRESS RAY_CLIENT_MODE RAY_JOB_ID RAY_NAMESPACE RAY_RUNTIME_ENV_URI
 export RAY_DEDUP_LOGS=0
-export RAY_TMPDIR="${RAY_TMPDIR:-$run_root/ray}"
-export TMPDIR="${NEMORL_TRTLLM_TMPDIR:-$run_root/tmp}"
+export RAY_TMPDIR="${RAY_TMPDIR:-$ray_root}"
+export TMPDIR="${NEMORL_TRTLLM_TMPDIR:-$ray_root/tmp}"
 export TMP="$TMPDIR"
 export TEMP="$TMPDIR"
 export NCCL_DEBUG="${NCCL_DEBUG:-WARN}"
@@ -154,7 +155,7 @@ PY
 fi
 
 if [ "$mode" = "ray-check" ]; then
-  "$venv/bin/python" - "$run_root/ray" <<'PY'
+  "$venv/bin/python" - "$RAY_TMPDIR" <<'PY'
 import sys
 
 import ray
