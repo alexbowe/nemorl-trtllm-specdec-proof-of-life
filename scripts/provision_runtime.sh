@@ -104,12 +104,16 @@ else
   echo "Skipping torch build dependencies for preflight"
 fi
 
-# Install local source trees without letting pip replace the container's torch stack.
-"$venv/bin/python" -m pip install --no-deps -e "$repo"
+if [ "${NEMORL_TRTLLM_INSTALL_NEMORL:-1}" = "1" ]; then
+  # Install local source trees without letting pip replace the container's torch stack.
+  "$venv/bin/python" -m pip install --no-deps -e "$repo"
 
-automodel_repo="$repo/3rdparty/Automodel-workspace/Automodel"
-if [ -f "$automodel_repo/pyproject.toml" ] || [ -f "$automodel_repo/setup.py" ]; then
-  "$venv/bin/python" -m pip install --no-deps -e "$automodel_repo"
+  automodel_repo="$repo/3rdparty/Automodel-workspace/Automodel"
+  if [ -f "$automodel_repo/pyproject.toml" ] || [ -f "$automodel_repo/setup.py" ]; then
+    "$venv/bin/python" -m pip install --no-deps -e "$automodel_repo"
+  fi
+else
+  echo "Skipping Nemo-RL editable install; scripts will use PYTHONPATH source checkout"
 fi
 
 echo "Runtime ready: $venv"
