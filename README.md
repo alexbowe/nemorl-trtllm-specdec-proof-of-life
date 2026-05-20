@@ -96,6 +96,8 @@ Useful scheduler overrides:
 - `SLURM_GPUS_PER_NODE`
 - `SLURM_CPUS_PER_TASK`
 - `SLURM_TIME`
+- `SLURM_CONTAINER_REMAP_ROOT` / `AIHUB_CONTAINER_REMAP_ROOT`; AIHub defaults
+  to `0` because some Pyxis nodes fail to start containers with root remapping.
 - `QUEUE_POLL_SECONDS`
 - `MISSING_JOB_GRACE_SECONDS`
 
@@ -188,6 +190,9 @@ The reward is only a smoke-test signal.
   Lustre runtime paths in Ray sockets.
 - Disable Nemo-RL's stale Ray auto-attach path during smoke runs, so each Slurm
   job starts a fresh local Ray instance.
+- Run AIHub Pyxis containers with `--no-container-remap-root` by default, which
+  avoids node-level `pyxis: couldn't start container` failures seen after image
+  import.
 
 ## Sources
 
