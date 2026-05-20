@@ -180,7 +180,7 @@ run_srun_once() {
   wait "$srun_pid"
   local wait_status=$?
   set -e
-  if [ "$wait_status" -eq 0 ] && grep -Eq "srun: error: .*Exited with exit code|pyxis: (failed to import docker image|couldn't start container)|spank_pyxis.so" "$srun_log"; then
+  if [ "$wait_status" -eq 0 ] && grep -Eq "srun: error: .*: task .*: (Exited with exit code|Terminated)|STEP .* CANCELLED|pyxis: (failed to import docker image|couldn't start container)|spank_pyxis.so" "$srun_log"; then
     return 1
   fi
   return "$wait_status"

@@ -88,11 +88,14 @@ printf 'torch_cuda_arch_list=%s\n' "${TORCH_CUDA_ARCH_LIST:-<unset>}"
 
 install_torch_build_deps="${NEMORL_TRTLLM_INSTALL_TORCH_BUILD_DEPS:-}"
 if [ -z "$install_torch_build_deps" ]; then
-  if [ "${NEMORL_TRTLLM_SMOKE_MODE:-run}" = "preflight" ]; then
-    install_torch_build_deps=0
-  else
-    install_torch_build_deps=1
-  fi
+  case "${NEMORL_TRTLLM_SMOKE_MODE:-run}" in
+    preflight|import-check|model-check|ray-check|collective-check)
+      install_torch_build_deps=0
+      ;;
+    *)
+      install_torch_build_deps=1
+      ;;
+  esac
 fi
 
 "$venv/bin/python" -m pip install --upgrade pip setuptools wheel
