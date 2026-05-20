@@ -176,6 +176,8 @@ The reward is only a smoke-test signal.
   TRTLLM import does not require FlashInfer's CUDA IPC path.
 - Cast TRTLLM Mamba prefill SSM state updates to the cache dtype before writing
   them back into the Python Mamba cache.
+- Derive TRTLLM Mamba speculative decode token count from the actual decode
+  batch instead of assuming every step has `max_draft_len + 1` tokens.
 - Link built TRTLLM plugin `.so` files into the fresh source checkout, because a
   clean submodule checkout does not include compiled TRTLLM libraries.
 - Link TRTLLM wheel package extensions such as `tensorrt_llm.bindings` into the
@@ -218,7 +220,7 @@ The reward is only a smoke-test signal.
 
 ## Sources
 
-- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase-1.3.0rc14`, commit `e82b264769156d9980cce3b19a6b492d28872213`
+- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase-1.3.0rc14`, commit `938315fae3be00586e0bfd27e0ac3ca3108e471b`
 - Nemo-RL submodule: `alexbowe/RL`, branch `abowe/trtllm-specdec-rebase`, commit `129ecfccad642f9fb231436a9da0ee067c61c25f`
 - TRTLLM base: `NVIDIA/TensorRT-LLM`, tag `v1.3.0rc14`, commit `93cb6518b6d6dbd6095748189e626db731f44545`
 - TRTLLM specdec source commit: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
