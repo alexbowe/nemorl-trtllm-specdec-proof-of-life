@@ -147,14 +147,7 @@ run_srun_once() {
 
   while kill -0 "$srun_pid" >/dev/null 2>&1; do
     if [ -z "$job_id" ]; then
-      job_id="$(sed -n 's/.*job \([0-9][0-9]*\) queued.*/\1/p' "$srun_log" | tail -n 1)"
-      if [ -z "$job_id" ]; then
-        job_id="$(
-          squeue -h -u "$slurm_user" -n "$job_name" -o "%i" 2>/dev/null \
-            | head -n 1 \
-            || true
-        )"
-      fi
+      job_id="$(sed -n 's/.*srun: job \([0-9][0-9]*\) .*/\1/p' "$srun_log" | tail -n 1)"
     fi
     if [ -n "$job_id" ]; then
       queue_line="$(squeue -h -j "$job_id" -o "%.18i %.12P %.18j %.8u %.2t %.10M %.10l %.6D %R" 2>/dev/null || true)"
