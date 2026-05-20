@@ -178,6 +178,9 @@ The reward is only a smoke-test signal.
   them back into the Python Mamba cache.
 - Derive TRTLLM Mamba speculative decode token count from the actual decode
   batch instead of assuming every step has `max_draft_len + 1` tokens.
+- Disable TRTLLM Mamba replay state update for `draft_target`, because replay
+  currently assumes a static max draft window while DraftTarget can execute a
+  shorter runtime draft window during warmup/verification.
 - Link built TRTLLM plugin `.so` files into the fresh source checkout, because a
   clean submodule checkout does not include compiled TRTLLM libraries.
 - Link TRTLLM wheel package extensions such as `tensorrt_llm.bindings` into the
@@ -220,7 +223,7 @@ The reward is only a smoke-test signal.
 
 ## Sources
 
-- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase-1.3.0rc14`, commit `938315fae3be00586e0bfd27e0ac3ca3108e471b`
+- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase-1.3.0rc14`, commit `a21d2b8f2725e84ae26e7d388a16993ce5c3f439`
 - Nemo-RL submodule: `alexbowe/RL`, branch `abowe/trtllm-specdec-rebase`, commit `129ecfccad642f9fb231436a9da0ee067c61c25f`
 - TRTLLM base: `NVIDIA/TensorRT-LLM`, tag `v1.3.0rc14`, commit `93cb6518b6d6dbd6095748189e626db731f44545`
 - TRTLLM specdec source commit: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
