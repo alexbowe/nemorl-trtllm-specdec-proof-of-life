@@ -106,6 +106,8 @@ Useful runtime overrides:
 
 - `NEMORL_TRTLLM_SMOKE_MODE=preflight` runs setup plus imports/config checks only.
 - `NEMORL_TRTLLM_SMOKE_MODE=ray-check` runs setup plus Nemo-RL Ray init only.
+- `NEMORL_TRTLLM_APPLY_NEMORL_PATCHES=0` skips the bundled Nemo-RL patches
+  when testing an external checkout that already has equivalent fixes.
 - `NEMORL_TRTLLM_INSTALL_TORCH_BUILD_DEPS=1` forces torch-extension deps during
   preflight. Normal GRPO runs install them automatically.
 - `NEMORL_TRTLLM_DETECT_CUDA_ARCH_LIST=0` keeps the container's
