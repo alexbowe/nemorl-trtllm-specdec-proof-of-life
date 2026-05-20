@@ -110,8 +110,11 @@ Useful runtime overrides:
 
 - `NEMORL_TRTLLM_SMOKE_MODE=preflight` runs setup plus imports/config checks only.
 - `NEMORL_TRTLLM_SMOKE_MODE=ray-check` runs setup plus Nemo-RL Ray init only.
-- `NEMORL_TRTLLM_APPLY_NEMORL_PATCHES=0` skips the bundled Nemo-RL patches
-  when testing an external checkout that already has equivalent fixes.
+- `NEMORL_TRTLLM_SMOKE_MODE=collective-check` runs the tiny 2-GPU NCCL
+  collective check used to validate the Nemo-RL/TRTLLM refit path.
+- `NEMORL_TRTLLM_APPLY_NEMORL_PATCHES=1` applies the older bundled Nemo-RL
+  patches when testing an older external checkout. The default submodule branch
+  already has the equivalent fixes.
 - `NEMORL_TRTLLM_INSTALL_NEMORL=0` skips editable Nemo-RL install and runs from
   `PYTHONPATH`, useful when testing newer source with stricter package metadata.
 - `NEMORL_TRTLLM_INSTALL_TORCH_BUILD_DEPS=1` forces torch-extension deps during
@@ -192,6 +195,12 @@ The reward is only a smoke-test signal.
   Lustre runtime paths in Ray sockets.
 - Disable Nemo-RL's stale Ray auto-attach path during smoke runs, so each Slurm
   job starts a fresh local Ray instance.
+- Make `decord` and Megatron imports lazy enough that this TRTLLM/DTensor smoke
+  path does not need unused optional dependencies at import time.
+- Use Nemo-RL's NCCL process group for TRTLLM refit, matching the policy worker
+  side of the collective.
+- Convert Mamba Conv1d refit weights from dense `[C, C, K]` layout into the
+  TRTLLM depthwise `[C, K]` layout.
 - Run AIHub Pyxis containers with `--no-container-remap-root` by default, which
   avoids node-level `pyxis: couldn't start container` failures seen after image
   import.
@@ -201,7 +210,7 @@ The reward is only a smoke-test signal.
 ## Sources
 
 - TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/rick-specdec-multitoken-fix`, commit `2b617b2f2c8fbbdf41eb1720f473c1ae926522e5`
-- Nemo-RL submodule: `ricklamers-nvidia/RL`, branch `rick/trtllm-specdec`, commit `d69c8f638e390b407b89bc561355cfb4b196e131`
+- Nemo-RL submodule: `alexbowe/RL`, branch `abowe/trtllm-specdec-rebase`, commit `129ecfccad642f9fb231436a9da0ee067c61c25f`
 - TRTLLM base branch: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
 - Review patches:
   - `patches/trtllm-mamba-multitoken-decode.patch`
