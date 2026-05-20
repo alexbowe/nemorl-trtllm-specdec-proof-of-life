@@ -7,6 +7,7 @@ colored==2.2.3
 ray[default]==2.49.2
 transformers==4.57.3
 datasets==3.1.0
+decord2
 rich
 math-verify
 accelerate>=0.26
