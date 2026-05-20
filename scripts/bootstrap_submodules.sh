@@ -10,4 +10,4 @@ git -c credential.helper= submodule update --init
 
 printf 'TensorRT-LLM: %s\n' "$(git -C "$repo_root/external/TensorRT-LLM" rev-parse HEAD)"
 printf 'RL: %s\n' "$(git -C "$repo_root/external/RL" rev-parse HEAD)"
-printf '\nSubmodules pinned. Run scripts/apply_trtllm_patch.sh next.\n'
+printf '\nSubmodules pinned.\n'

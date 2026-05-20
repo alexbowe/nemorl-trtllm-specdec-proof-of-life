@@ -10,7 +10,7 @@ dev_root="${DEV_ROOT:-$(default_dev_root "$profile")}"
 venv="${NEMORL_TRTLLM_VENV:-$(default_venv "$dev_root")}"
 
 "$script_dir/bootstrap_submodules.sh"
-if [ "${NEMORL_TRTLLM_APPLY_TRTLLM_PATCHES:-1}" = "1" ]; then
+if [ "${NEMORL_TRTLLM_APPLY_TRTLLM_PATCHES:-0}" = "1" ]; then
   "$script_dir/apply_trtllm_patch.sh"
 fi
 if [ "${NEMORL_TRTLLM_APPLY_NEMORL_PATCHES:-0}" = "1" ]; then

@@ -112,6 +112,9 @@ Useful runtime overrides:
 - `NEMORL_TRTLLM_SMOKE_MODE=ray-check` runs setup plus Nemo-RL Ray init only.
 - `NEMORL_TRTLLM_SMOKE_MODE=collective-check` runs the tiny 2-GPU NCCL
   collective check used to validate the Nemo-RL/TRTLLM refit path.
+- `NEMORL_TRTLLM_APPLY_TRTLLM_PATCHES=1` applies the older bundled TRTLLM
+  Mamba patch when testing an older external checkout. The default submodule
+  branch is already rebased and should not need it.
 - `NEMORL_TRTLLM_APPLY_NEMORL_PATCHES=1` applies the older bundled Nemo-RL
   patches when testing an older external checkout. The default submodule branch
   already has the equivalent fixes.
@@ -141,13 +144,13 @@ For step-by-step debugging:
 
 ```bash
 scripts/bootstrap_submodules.sh
-scripts/apply_trtllm_patch.sh
-scripts/apply_nemorl_patch.sh
 scripts/provision_runtime.sh
 scripts/prepare_trtllm_libs.sh
 scripts/preflight.sh
 scripts/run_tiny_grpo.sh
 ```
+
+The patch scripts are only for older external checkouts.
 
 ## What It Runs
 
@@ -167,8 +170,8 @@ The reward is only a smoke-test signal.
 
 ## Fixes Applied
 
-- Patch the TRTLLM Mamba decode path to handle multiple draft tokens per request
-  with `draft_target`.
+- Rebase the TRTLLM specdec path onto current upstream main. The older bundled
+  Mamba multi-token patch is now opt-in for testing older TRTLLM checkouts.
 - Link built TRTLLM plugin `.so` files into the fresh source checkout, because a
   clean submodule checkout does not include compiled TRTLLM libraries.
 - Link TRTLLM wheel package extensions such as `tensorrt_llm.bindings` into the
@@ -213,7 +216,8 @@ The reward is only a smoke-test signal.
 
 - TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase`, commit `feb730c41ee4aaf7a2ec4403066e8bda11cdc33b`
 - Nemo-RL submodule: `alexbowe/RL`, branch `abowe/trtllm-specdec-rebase`, commit `129ecfccad642f9fb231436a9da0ee067c61c25f`
-- TRTLLM base branch: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
+- TRTLLM base branch: `NVIDIA/TensorRT-LLM`, branch `main`, commit `f278c4f17f...`
+- TRTLLM specdec source commit: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
 - Review patches:
   - `patches/trtllm-mamba-multitoken-decode.patch`
   - `patches/nemorl-torch-2.9-alias-patch.patch`
