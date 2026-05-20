@@ -100,6 +100,8 @@ Useful scheduler overrides:
   to `0` because some Pyxis nodes fail to start containers with root remapping.
 - `QUEUE_POLL_SECONDS`
 - `MISSING_JOB_GRACE_SECONDS`
+- `SRUN_MAX_ATTEMPTS` / `AIHUB_SRUN_MAX_ATTEMPTS`; AIHub defaults to `5` and
+  retries on node-local Pyxis import/start failures.
 
 The cluster-specific names also work: `AIHUB_*` on AIHub and `COMPUTELAB_*` on
 computelab.
@@ -193,6 +195,8 @@ The reward is only a smoke-test signal.
 - Run AIHub Pyxis containers with `--no-container-remap-root` by default, which
   avoids node-level `pyxis: couldn't start container` failures seen after image
   import.
+- Retry AIHub `srun` after node-local Pyxis failures, excluding the failed node
+  before the next attempt.
 
 ## Sources
 

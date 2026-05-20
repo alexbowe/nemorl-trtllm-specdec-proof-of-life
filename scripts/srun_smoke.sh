@@ -74,97 +74,160 @@ export ENROOT_DATA_PATH="${ENROOT_DATA_PATH:-$run_root/enroot-data}"
 export ENROOT_TEMP_PATH="${ENROOT_TEMP_PATH:-$run_root/enroot-tmp}"
 cd "$repo_root"
 
-srun_log="$(mktemp "${TMPDIR:-/tmp}/nemorl-trtllm-srun.XXXXXX")"
-srun_args=(
-  --job-name="$job_name"
-  --partition="$partition"
-  --nodes=1
-  --ntasks=1
-  --gpus-per-node="$gpus_per_node"
-  --cpus-per-task="$cpus_per_task"
-  --time="$time_limit"
-  --container-image="$container_image"
-  --container-mounts="$repo_root:$repo_root,$dev_root:$dev_root"
-  --container-workdir="$repo_root"
-)
-if [ -n "$account" ]; then
-  srun_args+=(--account="$account")
-fi
-if [ -n "$exclude" ]; then
-  srun_args+=(--exclude="$exclude")
-fi
-if [ -n "$nodelist" ]; then
-  srun_args+=(--nodelist="$nodelist")
-fi
-if [ -n "$mem" ]; then
-  srun_args+=(--mem="$mem")
-fi
-case "$container_remap_root" in
-  1|true|TRUE|yes|YES|on|ON)
-    srun_args+=(--container-remap-root)
-    ;;
-  0|false|FALSE|no|NO|off|OFF)
-    srun_args+=(--no-container-remap-root)
-    ;;
-  "")
-    ;;
-  *)
-    echo "Invalid container remap setting: $container_remap_root" >&2
-    exit 1
-    ;;
-esac
-
 printf 'profile=%s\n' "$profile"
 printf 'dev_root=%s\n' "$dev_root"
 printf 'enroot_cache=%s\n' "$ENROOT_CACHE_PATH"
 printf 'container_image=%s\n' "$container_image"
-printf 'partition=%s gpus=%s cpus=%s mem=%s time=%s account=%s exclude=%s nodelist=%s remap_root=%s\n' \
-  "$partition" "$gpus_per_node" "$cpus_per_task" "${mem:-<default>}" "$time_limit" "${account:-<none>}" "${exclude:-<none>}" "${nodelist:-<none>}" "${container_remap_root:-<default>}"
-
-srun "${srun_args[@]}" bash -lc 'scripts/smoke.sh' 2> >(tee "$srun_log" >&2) &
-
-srun_pid=$!
-job_id=""
-missing_job_count=0
 poll_seconds="${QUEUE_POLL_SECONDS:-${COMPUTELAB_QUEUE_POLL_SECONDS:-60}}"
 missing_grace_seconds="${MISSING_JOB_GRACE_SECONDS:-${COMPUTELAB_MISSING_JOB_GRACE_SECONDS:-15}}"
+if [ "$profile" = "aihub" ]; then
+  max_attempts="${SRUN_MAX_ATTEMPTS:-${AIHUB_SRUN_MAX_ATTEMPTS:-5}}"
+else
+  max_attempts="${SRUN_MAX_ATTEMPTS:-${COMPUTELAB_SRUN_MAX_ATTEMPTS:-1}}"
+fi
+retry_exclude=""
 
-while kill -0 "$srun_pid" >/dev/null 2>&1; do
-  if [ -z "$job_id" ]; then
-    job_id="$(sed -n 's/.*job \([0-9][0-9]*\) queued.*/\1/p' "$srun_log" | tail -n 1)"
-    if [ -z "$job_id" ]; then
-      job_id="$(
-        squeue -h -u "$slurm_user" -n "$job_name" -o "%i" 2>/dev/null \
-          | head -n 1 \
-          || true
-      )"
-    fi
+build_srun_args() {
+  local current_exclude="$1"
+  srun_args=(
+    --job-name="$job_name"
+    --partition="$partition"
+    --nodes=1
+    --ntasks=1
+    --gpus-per-node="$gpus_per_node"
+    --cpus-per-task="$cpus_per_task"
+    --time="$time_limit"
+    --container-image="$container_image"
+    --container-mounts="$repo_root:$repo_root,$dev_root:$dev_root"
+    --container-workdir="$repo_root"
+  )
+  if [ -n "$account" ]; then
+    srun_args+=(--account="$account")
   fi
-  if [ -n "$job_id" ]; then
-    queue_line="$(squeue -h -j "$job_id" -o "%.18i %.12P %.18j %.8u %.2t %.10M %.10l %.6D %R" 2>/dev/null || true)"
-    if [ -n "$queue_line" ]; then
-      missing_job_count=0
-      printf '%s\n' "$queue_line"
-      sleep "$poll_seconds"
-    else
-      missing_job_count=$((missing_job_count + 1))
-      job_state="$(sacct -n -j "$job_id" --format=State%24,ExitCode,Elapsed -P 2>/dev/null | head -n 1 || true)"
-      if [ -n "$job_state" ]; then
-        printf 'Slurm job %s is no longer in squeue: %s\n' "$job_id" "$job_state" >&2
-      else
-        printf 'Slurm job %s is no longer in squeue.\n' "$job_id" >&2
+  if [ -n "$current_exclude" ]; then
+    srun_args+=(--exclude="$current_exclude")
+  fi
+  if [ -n "$nodelist" ]; then
+    srun_args+=(--nodelist="$nodelist")
+  fi
+  if [ -n "$mem" ]; then
+    srun_args+=(--mem="$mem")
+  fi
+  case "$container_remap_root" in
+    1|true|TRUE|yes|YES|on|ON)
+      srun_args+=(--container-remap-root)
+      ;;
+    0|false|FALSE|no|NO|off|OFF)
+      srun_args+=(--no-container-remap-root)
+      ;;
+    "")
+      ;;
+    *)
+      echo "Invalid container remap setting: $container_remap_root" >&2
+      exit 1
+      ;;
+  esac
+}
+
+run_srun_once() {
+  local current_exclude="$1"
+  local srun_log="$2"
+  local job_id=""
+  local missing_job_count=0
+  local srun_pid
+  local queue_line
+  local job_state
+
+  build_srun_args "$current_exclude"
+  printf 'partition=%s gpus=%s cpus=%s mem=%s time=%s account=%s exclude=%s nodelist=%s remap_root=%s\n' \
+    "$partition" "$gpus_per_node" "$cpus_per_task" "${mem:-<default>}" "$time_limit" "${account:-<none>}" "${current_exclude:-<none>}" "${nodelist:-<none>}" "${container_remap_root:-<default>}"
+
+  srun "${srun_args[@]}" bash -lc 'scripts/smoke.sh' 2> >(tee "$srun_log" >&2) &
+  srun_pid=$!
+
+  while kill -0 "$srun_pid" >/dev/null 2>&1; do
+    if [ -z "$job_id" ]; then
+      job_id="$(sed -n 's/.*job \([0-9][0-9]*\) queued.*/\1/p' "$srun_log" | tail -n 1)"
+      if [ -z "$job_id" ]; then
+        job_id="$(
+          squeue -h -u "$slurm_user" -n "$job_name" -o "%i" 2>/dev/null \
+            | head -n 1 \
+            || true
+        )"
       fi
-      if [ "$missing_job_count" -ge 2 ]; then
-        printf 'srun is still alive after job %s disappeared; stopping local wrapper.\n' "$job_id" >&2
-        kill "$srun_pid" >/dev/null 2>&1 || true
-        wait "$srun_pid" || true
-        exit 1
-      fi
-      sleep "$missing_grace_seconds"
     fi
+    if [ -n "$job_id" ]; then
+      queue_line="$(squeue -h -j "$job_id" -o "%.18i %.12P %.18j %.8u %.2t %.10M %.10l %.6D %R" 2>/dev/null || true)"
+      if [ -n "$queue_line" ]; then
+        missing_job_count=0
+        printf '%s\n' "$queue_line"
+        sleep "$poll_seconds"
+      else
+        missing_job_count=$((missing_job_count + 1))
+        job_state="$(sacct -n -j "$job_id" --format=State%24,ExitCode,Elapsed -P 2>/dev/null | head -n 1 || true)"
+        if [ -n "$job_state" ]; then
+          printf 'Slurm job %s is no longer in squeue: %s\n' "$job_id" "$job_state" >&2
+        else
+          printf 'Slurm job %s is no longer in squeue.\n' "$job_id" >&2
+        fi
+        if [ "$missing_job_count" -ge 2 ]; then
+          printf 'srun is still alive after job %s disappeared; stopping local wrapper.\n' "$job_id" >&2
+          kill "$srun_pid" >/dev/null 2>&1 || true
+          wait "$srun_pid" || true
+          return 1
+        fi
+        sleep "$missing_grace_seconds"
+      fi
+    else
+      sleep 5
+    fi
+  done
+
+  wait "$srun_pid"
+}
+
+append_exclude() {
+  local node="$1"
+  if [ -z "$node" ]; then
+    return
+  fi
+  case ",$retry_exclude," in
+    *,"$node",*) ;;
+    *)
+      if [ -n "$retry_exclude" ]; then
+        retry_exclude="$retry_exclude,$node"
+      else
+        retry_exclude="$node"
+      fi
+      ;;
+  esac
+}
+
+attempt=1
+while [ "$attempt" -le "$max_attempts" ]; do
+  if [ -n "$exclude" ] && [ -n "$retry_exclude" ]; then
+    current_exclude="$exclude,$retry_exclude"
+  elif [ -n "$retry_exclude" ]; then
+    current_exclude="$retry_exclude"
   else
-    sleep 5
+    current_exclude="$exclude"
+  fi
+  srun_log="$(mktemp "${TMPDIR:-/tmp}/nemorl-trtllm-srun.XXXXXX")"
+  printf 'srun_attempt=%s/%s\n' "$attempt" "$max_attempts"
+  if run_srun_once "$current_exclude" "$srun_log"; then
+    exit 0
+  fi
+  status=$?
+  failed_node="$(sed -n 's/.*srun: error: \([^:]*\): task .*/\1/p' "$srun_log" | tail -n 1)"
+  if grep -Eq "pyxis: (failed to import docker image|couldn't start container)|spank_pyxis.so" "$srun_log" \
+    && [ -n "$failed_node" ] \
+    && [ -z "$nodelist" ] \
+    && [ "$attempt" -lt "$max_attempts" ]; then
+    append_exclude "$failed_node"
+    printf 'Retrying after Pyxis failure on %s; retry_exclude=%s\n' "$failed_node" "$retry_exclude" >&2
+    attempt=$((attempt + 1))
+    continue
+  else
+    exit "$status"
   fi
 done
-
-wait "$srun_pid"
