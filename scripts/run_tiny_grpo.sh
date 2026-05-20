@@ -68,7 +68,9 @@ export TRITON_CACHE_DIR="${TRITON_CACHE_DIR:-$run_root/triton-cache}"
 export TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-$run_root/torchinductor-cache}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$run_root/xdg-cache}"
 export TOKENIZERS_PARALLELISM=false
+unset RAY_ADDRESS RAY_CLIENT_MODE RAY_JOB_ID RAY_NAMESPACE RAY_RUNTIME_ENV_URI
 export RAY_DEDUP_LOGS=0
+export RAY_TMPDIR="${RAY_TMPDIR:-$run_root/ray}"
 export NCCL_DEBUG="${NCCL_DEBUG:-WARN}"
 export NEMO_RL_PY_EXECUTABLES_SYSTEM=1
 export NRL_REFIT_BUFFER_MEMORY_RATIO="${NRL_REFIT_BUFFER_MEMORY_RATIO:-0.001}"
@@ -202,8 +204,14 @@ cfg.grpo.val_period = 0
 cfg.grpo.val_at_start = False
 cfg.grpo.max_val_samples = 0
 cfg.grpo.val_batch_size = 1
+grpo_source = Path("nemo_rl/algorithms/grpo.py").read_text(encoding="utf-8")
+if "val_at_end" in grpo_source:
+    cfg.grpo.val_at_end = False
+if "seq_logprob_error_threshold" in grpo_source:
+    cfg.grpo.seq_logprob_error_threshold = None
 
 cfg.checkpointing.enabled = False
+cfg.checkpointing.save_optimizer = False
 
 cfg.policy.model_name = model_name
 cfg.policy.tokenizer.name = model_name
@@ -227,6 +235,15 @@ cfg.policy.megatron_cfg.pipeline_model_parallel_size = 1
 cfg.policy.megatron_cfg.optimizer.use_distributed_optimizer = False
 cfg.policy.megatron_cfg.distributed_data_parallel_config.overlap_grad_reduce = False
 cfg.policy.megatron_cfg.distributed_data_parallel_config.overlap_param_gather = False
+run_grpo_source = Path("examples/run_grpo.py").read_text(encoding="utf-8")
+if 'policy["draft"]' in run_grpo_source and "draft" not in cfg.policy:
+    cfg.policy.draft = {
+        "enabled": False,
+        "model_name": None,
+        "loss_weight": 0.1,
+        "num_layers": None,
+        "aux_layer_indices": None,
+    }
 
 cfg.policy.generation.backend = "trtllm"
 cfg.policy.generation.max_new_tokens = max_new_tokens
@@ -246,16 +263,54 @@ cfg.policy.generation.colocated.resources.gpus_per_node = inference_gpus_per_nod
 cfg.policy.generation.colocated.resources.num_nodes = inference_num_nodes
 
 cfg.data.max_input_seq_length = max_total_sequence_length
-cfg.data.dataset_name = "ResponseDataset"
-cfg.data.train_data_path = str(tiny_data_path)
-cfg.data.val_data_path = None
-cfg.data.input_key = "input"
-cfg.data.output_key = "output"
-cfg.data.train_split = None
-cfg.data.val_split = None
-cfg.data.prompt_file = None
 cfg.data.shuffle = False
 cfg.data.num_workers = 0
+cfg.data.use_multiple_dataloader = False
+cfg.data.num_prompts_per_dataloader = 1
+data_source = Path("nemo_rl/data/__init__.py").read_text(encoding="utf-8")
+uses_nested_data_config = "train: ResponseDatasetConfig" in data_source
+if uses_nested_data_config:
+    for key in [
+        "dataset_name",
+        "train_data_path",
+        "val_data_path",
+        "input_key",
+        "output_key",
+        "train_split",
+        "val_split",
+        "prompt_file",
+    ]:
+        if key in cfg.data:
+            del cfg.data[key]
+    cfg.data.train = {
+        "dataset_name": "ResponseDataset",
+        "data_path": str(tiny_data_path),
+        "input_key": "input",
+        "output_key": "output",
+        "prompt_file": None,
+        "system_prompt_file": None,
+        "processor": "math_hf_data_processor",
+        "env_name": "math",
+    }
+    cfg.data.validation = None
+    cfg.data.default = {
+        "dataset_name": "ResponseDataset",
+        "input_key": "input",
+        "output_key": "output",
+        "prompt_file": None,
+        "system_prompt_file": None,
+        "processor": "math_hf_data_processor",
+        "env_name": "math",
+    }
+else:
+    cfg.data.dataset_name = "ResponseDataset"
+    cfg.data.train_data_path = str(tiny_data_path)
+    cfg.data.val_data_path = None
+    cfg.data.input_key = "input"
+    cfg.data.output_key = "output"
+    cfg.data.train_split = None
+    cfg.data.val_split = None
+    cfg.data.prompt_file = None
 cfg.env.math.num_workers = 1
 
 cfg.logger.log_dir = log_dir
