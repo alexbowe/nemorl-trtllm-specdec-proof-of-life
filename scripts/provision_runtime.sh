@@ -104,7 +104,7 @@ fi
 if [ "$install_torch_build_deps" = "1" ]; then
   "$venv/bin/python" -m pip install --no-build-isolation --no-cache-dir --constraint "$constraints" -r "$torch_build_requirements_file"
 else
-  echo "Skipping torch build dependencies for preflight"
+  echo "Skipping torch build dependencies for ${NEMORL_TRTLLM_SMOKE_MODE:-preflight}"
 fi
 
 if [ "${NEMORL_TRTLLM_INSTALL_NEMORL:-0}" = "1" ]; then

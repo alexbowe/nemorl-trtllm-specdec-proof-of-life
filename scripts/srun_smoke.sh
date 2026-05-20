@@ -180,6 +180,16 @@ run_srun_once() {
   wait "$srun_pid"
   local wait_status=$?
   set -e
+  sleep 1
+  if [ -n "$job_id" ]; then
+    job_state="$(sacct -n -X -j "$job_id" --format=State%24,ExitCode -P 2>/dev/null | head -n 1 || true)"
+    case "$job_state" in
+      *FAILED*|*CANCELLED*|*TIMEOUT*|*OUT_OF_MEMORY*|*NODE_FAIL*|*PREEMPTED*)
+        printf 'Slurm job %s finished unsuccessfully: %s\n' "$job_id" "$job_state" >&2
+        return 1
+        ;;
+    esac
+  fi
   if [ "$wait_status" -eq 0 ] && grep -Eq "srun: error: .*: task .*: (Exited with exit code|Terminated)|STEP .* CANCELLED|pyxis: (failed to import docker image|couldn't start container)|spank_pyxis.so" "$srun_log"; then
     return 1
   fi
