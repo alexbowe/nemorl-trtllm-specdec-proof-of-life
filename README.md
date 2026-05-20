@@ -91,7 +91,8 @@ Useful scheduler overrides:
 
 - `SLURM_ACCOUNT`
 - `SLURM_PARTITION`
-- `SLURM_EXCLUDE`
+- `SLURM_EXCLUDE` or `AIHUB_EXCLUDE` if a node has local Pyxis/Enroot image
+  import issues
 - `SLURM_GPUS_PER_NODE`
 - `SLURM_CPUS_PER_TASK`
 - `SLURM_TIME`
@@ -104,6 +105,7 @@ computelab.
 Useful runtime overrides:
 
 - `NEMORL_TRTLLM_SMOKE_MODE=preflight` runs setup plus imports/config checks only.
+- `NEMORL_TRTLLM_SMOKE_MODE=ray-check` runs setup plus Nemo-RL Ray init only.
 - `NEMORL_TRTLLM_INSTALL_TORCH_BUILD_DEPS=1` forces torch-extension deps during
   preflight. Normal GRPO runs install them automatically.
 - `NEMORL_TRTLLM_DETECT_CUDA_ARCH_LIST=0` keeps the container's
@@ -178,6 +180,10 @@ The reward is only a smoke-test signal.
   incompatible optional transitive pins do not break this TRTLLM-only smoke.
 - Put pip build temp files under the run root, and disable pip wheel caching for
   torch-extension builds to avoid cross-filesystem wheel rename failures.
+- Put Ray temp files under a short local `/tmp/nemorl-ray-*` path to avoid long
+  Lustre runtime paths in Ray sockets.
+- Disable Nemo-RL's stale Ray auto-attach path during smoke runs, so each Slurm
+  job starts a fresh local Ray instance.
 
 ## Sources
 
@@ -190,6 +196,7 @@ The reward is only a smoke-test signal.
   - `patches/nemorl-trtllm-kvcache.patch`
   - `patches/nemorl-trtllm-clean-shutdown.patch`
   - `patches/nemorl-trtllm-generation-clean-shutdown.patch`
+  - `patches/nemorl-ray-disable-auto-attach.patch`
 
 The TRTLLM patch fixes a Mamba decode path on the older specdec branch for
 batches with multiple draft tokens per request. Current NVIDIA TRTLLM `main` has

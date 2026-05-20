@@ -50,6 +50,7 @@ check_standalone_checkout() {
     "patches/nemorl-trtllm-kvcache.patch"
     "patches/nemorl-trtllm-clean-shutdown.patch"
     "patches/nemorl-trtllm-generation-clean-shutdown.patch"
+    "patches/nemorl-ray-disable-auto-attach.patch"
     "scripts/common.sh"
     "scripts/bootstrap_submodules.sh"
     "scripts/apply_trtllm_patch.sh"
