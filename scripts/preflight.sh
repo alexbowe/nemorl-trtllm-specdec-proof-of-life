@@ -42,6 +42,7 @@ export TMP="$TMPDIR"
 export TEMP="$TMPDIR"
 export NCCL_DEBUG="${NCCL_DEBUG:-WARN}"
 export NEMO_RL_PY_EXECUTABLES_SYSTEM=1
+export NEMO_RL_DISABLE_RAY_AUTO_ATTACH="${NEMO_RL_DISABLE_RAY_AUTO_ATTACH:-1}"
 
 while IFS='=' read -r name _; do
   case "$name" in

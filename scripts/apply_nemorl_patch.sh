@@ -9,6 +9,7 @@ patches=(
   "$repo_root/patches/nemorl-trtllm-kvcache.patch"
   "$repo_root/patches/nemorl-trtllm-clean-shutdown.patch"
   "$repo_root/patches/nemorl-trtllm-generation-clean-shutdown.patch"
+  "$repo_root/patches/nemorl-ray-disable-auto-attach.patch"
 )
 
 if [ ! -d "$repo/.git" ] && [ ! -f "$repo/.git" ]; then

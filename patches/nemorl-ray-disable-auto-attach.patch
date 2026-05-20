@@ -1,0 +1,12 @@
+diff --git a/nemo_rl/distributed/virtual_cluster.py b/nemo_rl/distributed/virtual_cluster.py
+--- a/nemo_rl/distributed/virtual_cluster.py
++++ b/nemo_rl/distributed/virtual_cluster.py
+@@ -107,6 +107,8 @@ def init_ray(log_dir: Optional[str] = None) -> None:
+ 
+     # Try to attach to an existing cluster
+     try:
++        if os.environ.get("NEMO_RL_DISABLE_RAY_AUTO_ATTACH", "").lower() in {"1", "true", "yes", "on"}:
++            raise ConnectionError("Ray auto-attach disabled by NEMO_RL_DISABLE_RAY_AUTO_ATTACH")
+         ray.init(
+             address="auto",
+             log_to_driver=True,
