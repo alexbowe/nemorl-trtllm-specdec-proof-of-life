@@ -172,6 +172,73 @@ PY
   exit $?
 fi
 
+if [ "$mode" = "collective-check" ]; then
+  "$venv/bin/python" - "$RAY_TMPDIR" <<'PY'
+import contextlib
+import socket
+import sys
+
+import ray
+
+from nemo_rl.distributed.virtual_cluster import init_ray
+
+
+def free_port() -> int:
+    with contextlib.closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.bind(("", 0))
+        return sock.getsockname()[1]
+
+
+@ray.remote(num_gpus=1)
+class PolicyCollectiveActor:
+    def init_collective(self, ip: str, port: int) -> str:
+        import torch
+        from nemo_rl.distributed.stateless_process_group import StatelessProcessGroup
+
+        group = StatelessProcessGroup(
+            master_address=ip, port=port, rank=0, world_size=2,
+        )
+        group.init_nccl_communicator(device=torch.cuda.current_device())
+        self.group = group
+        return "policy-ok"
+
+
+@ray.remote(num_gpus=1)
+class TrtllmCollectiveActor:
+    def init_collective(self, ip: str, port: int) -> str:
+        import torch
+        from nemo_rl.models.generation.trtllm.trtllm_backend import NcclExtension
+
+        extension = NcclExtension.__new__(NcclExtension)
+        extension.device_id = torch.cuda.current_device()
+        extension.init_collective(
+            rank_prefix=0, ip=ip, port=port, world_size=2, train_world_size=1,
+        )
+        self.extension = extension
+        return "trtllm-ok"
+
+
+log_dir = sys.argv[1]
+init_ray(log_dir=log_dir)
+resources = ray.cluster_resources()
+print(f"ray_resources={resources}", flush=True)
+if resources.get("GPU", 0) < 2:
+    raise SystemExit("collective-check requires 2 GPUs")
+
+ip = ray.util.get_node_ip_address()
+port = free_port()
+policy = PolicyCollectiveActor.remote()
+trtllm = TrtllmCollectiveActor.remote()
+results = ray.get(
+    [policy.init_collective.remote(ip, port), trtllm.init_collective.remote(ip, port)],
+    timeout=180,
+)
+print(f"collective_check={results}", flush=True)
+ray.shutdown()
+PY
+  exit $?
+fi
+
 "$venv/bin/python" - "$config_path" "$run_root/logs" "$model_name" "$spec_model" "$spec_decoding_method" "$max_draft_len" "$max_new_tokens" "$trtllm_gpu_memory_utilization" "$trtllm_max_num_tokens" "$trtllm_max_batch_size" "$generation_batch_size" "$num_generations_per_prompt" "$train_global_batch_size" "$train_micro_batch_size" "$max_total_sequence_length" "$cluster_num_nodes" "$cluster_gpus_per_node" "$inference_gpus_per_node" "$inference_num_nodes" "$dtensor_v2" "$dtensor_tensor_parallel_size" "$dtensor_context_parallel_size" "$dtensor_cpu_offload" "$dtensor_activation_checkpointing" "$dtensor_sequence_parallel" <<'PY'
 import json
 import sys
