@@ -115,8 +115,8 @@ Useful runtime overrides:
 - `NEMORL_TRTLLM_APPLY_NEMORL_PATCHES=1` applies the older bundled Nemo-RL
   patches when testing an older external checkout. The default submodule branch
   already has the equivalent fixes.
-- `NEMORL_TRTLLM_INSTALL_NEMORL=0` skips editable Nemo-RL install and runs from
-  `PYTHONPATH`, useful when testing newer source with stricter package metadata.
+- `NEMORL_TRTLLM_INSTALL_NEMORL=1` enables editable Nemo-RL install. By default
+  the smoke runs from `PYTHONPATH`, which matches the rebased source checkout.
 - `NEMORL_TRTLLM_INSTALL_TORCH_BUILD_DEPS=1` forces torch-extension deps during
   preflight. Normal GRPO runs install them automatically.
 - `NEMORL_TRTLLM_DETECT_CUDA_ARCH_LIST=0` keeps the container's
@@ -197,6 +197,8 @@ The reward is only a smoke-test signal.
   job starts a fresh local Ray instance.
 - Make `decord` and Megatron imports lazy enough that this TRTLLM/DTensor smoke
   path does not need unused optional dependencies at import time.
+- Run Nemo-RL from `PYTHONPATH` by default, avoiding editable-install Python
+  metadata checks that are stricter than the validated container runtime.
 - Use Nemo-RL's NCCL process group for TRTLLM refit, matching the policy worker
   side of the collective.
 - Convert Mamba Conv1d refit weights from dense `[C, C, K]` layout into the

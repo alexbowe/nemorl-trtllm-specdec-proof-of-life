@@ -104,7 +104,7 @@ else
   echo "Skipping torch build dependencies for preflight"
 fi
 
-if [ "${NEMORL_TRTLLM_INSTALL_NEMORL:-1}" = "1" ]; then
+if [ "${NEMORL_TRTLLM_INSTALL_NEMORL:-0}" = "1" ]; then
   # Install local source trees without letting pip replace the container's torch stack.
   "$venv/bin/python" -m pip install --no-deps -e "$repo"
 
