@@ -77,6 +77,12 @@ for artifact in "$source_pkg"/*.so "$source_pkg"/*.pyi "$source_pkg"/bindings "$
   fi
 done
 
+while IFS= read -r artifact; do
+  rel="${artifact#"$source_pkg"/}"
+  mkdir -p "$target_pkg/$(dirname "$rel")"
+  link_artifact "$artifact" "$target_pkg/$rel"
+done < <(find "$source_pkg" -type f \( -name '*.so' -o -name '*.pyi' \))
+
 if [ ! -e "$target_libs/$required_lib" ]; then
   echo "Failed to link required TRTLLM plugin lib: $target_libs/$required_lib" >&2
   exit 1
