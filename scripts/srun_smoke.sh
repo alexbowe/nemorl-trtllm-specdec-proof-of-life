@@ -224,10 +224,13 @@ while [ "$attempt" -le "$max_attempts" ]; do
   fi
   srun_log="$(mktemp "${TMPDIR:-/tmp}/nemorl-trtllm-srun.XXXXXX")"
   printf 'srun_attempt=%s/%s\n' "$attempt" "$max_attempts"
-  if run_srun_once "$current_exclude" "$srun_log"; then
+  set +e
+  run_srun_once "$current_exclude" "$srun_log"
+  status=$?
+  set -e
+  if [ "$status" -eq 0 ]; then
     exit 0
   fi
-  status=$?
   failed_node="$(sed -n 's/.*srun: error: \([^:]*\): task .*/\1/p' "$srun_log" | tail -n 1)"
   if grep -Eq "pyxis: (failed to import docker image|couldn't start container)|spank_pyxis.so" "$srun_log" \
     && [ -n "$failed_node" ] \
