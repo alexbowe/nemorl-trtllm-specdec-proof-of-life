@@ -1,7 +1,7 @@
 [submodule "external/TensorRT-LLM"]
 	path = external/TensorRT-LLM
 	url = https://github.com/alexbowe/TensorRT-LLM.git
-	branch = abowe/rick-specdec-multitoken-fix
+	branch = abowe/trtllm-specdec-rebase
 [submodule "external/RL"]
 	path = external/RL
 	url = https://github.com/alexbowe/RL.git
