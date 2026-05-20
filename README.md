@@ -174,6 +174,8 @@ The reward is only a smoke-test signal.
   Mamba multi-token patch is now opt-in for testing older TRTLLM checkouts.
 - Lazy-load optional TRTLLM FlashInfer MoE communication code, so a basic
   TRTLLM import does not require FlashInfer's CUDA IPC path.
+- Cast TRTLLM Mamba prefill SSM state updates to the cache dtype before writing
+  them back into the Python Mamba cache.
 - Link built TRTLLM plugin `.so` files into the fresh source checkout, because a
   clean submodule checkout does not include compiled TRTLLM libraries.
 - Link TRTLLM wheel package extensions such as `tensorrt_llm.bindings` into the
@@ -216,7 +218,7 @@ The reward is only a smoke-test signal.
 
 ## Sources
 
-- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase-1.3.0rc14`, commit `51854ef9dc45186a8f6dc939af4ac63dccf3937e`
+- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase-1.3.0rc14`, commit `e82b264769156d9980cce3b19a6b492d28872213`
 - Nemo-RL submodule: `alexbowe/RL`, branch `abowe/trtllm-specdec-rebase`, commit `129ecfccad642f9fb231436a9da0ee067c61c25f`
 - TRTLLM base: `NVIDIA/TensorRT-LLM`, tag `v1.3.0rc14`, commit `93cb6518b6d6dbd6095748189e626db731f44545`
 - TRTLLM specdec source commit: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
