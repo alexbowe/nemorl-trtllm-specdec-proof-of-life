@@ -34,7 +34,7 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 
 git_public() {
-  git -c credential.helper= "$@"
+  git -c credential.helper= -c submodule.recurse=false "$@"
 }
 
 check_standalone_checkout() {
@@ -107,13 +107,13 @@ if [ -d "$install_dir/.git" ]; then
     -- .gitmodules README.md data patches requirements scripts
   git_public -C "$install_dir" checkout -B "$ref" "origin/$ref"
   restore_known_submodule_patch_files
-  git_public -C "$install_dir" submodule sync
-  git_public -C "$install_dir" submodule update --init
+  git_public -C "$install_dir" submodule sync external/TensorRT-LLM external/RL
+  git_public -C "$install_dir" submodule update --init external/TensorRT-LLM external/RL
 else
   mkdir -p "$(dirname "$install_dir")"
   git_public clone --branch "$ref" "$repo_url" "$install_dir"
-  git_public -C "$install_dir" submodule sync
-  git_public -C "$install_dir" submodule update --init
+  git_public -C "$install_dir" submodule sync external/TensorRT-LLM external/RL
+  git_public -C "$install_dir" submodule update --init external/TensorRT-LLM external/RL
 fi
 
 check_standalone_checkout

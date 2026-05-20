@@ -24,11 +24,21 @@ if [ -d "$install_dir/.git" ]; then
     --staged \
     -- .gitmodules README.md data patches requirements scripts
   public_git -C "$install_dir" checkout -B "$ref" "origin/$ref"
-  public_git -C "$install_dir" submodule sync --recursive
-  public_git -C "$install_dir" submodule update --init --recursive
+  public_git -C "$install_dir" -c submodule.recurse=false submodule sync \
+    external/TensorRT-LLM \
+    external/RL
+  public_git -C "$install_dir" -c submodule.recurse=false submodule update --init \
+    external/TensorRT-LLM \
+    external/RL
 else
   mkdir -p "$(dirname "$install_dir")"
-  public_git clone --recurse-submodules --branch "$ref" "$repo_url" "$install_dir"
+  public_git clone --branch "$ref" "$repo_url" "$install_dir"
+  public_git -C "$install_dir" -c submodule.recurse=false submodule sync \
+    external/TensorRT-LLM \
+    external/RL
+  public_git -C "$install_dir" -c submodule.recurse=false submodule update --init \
+    external/TensorRT-LLM \
+    external/RL
 fi
 
 DEV_ROOT="$dev_root" CLUSTER_PROFILE="$profile" "$install_dir/scripts/srun_smoke.sh"
