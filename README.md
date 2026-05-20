@@ -223,7 +223,7 @@ The reward is only a smoke-test signal.
 
 ## Sources
 
-- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase-1.3.0rc14`, commit `94668a78402eac7c5ac6d3c7cd542eb7802d8b87`
+- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase-1.3.0rc14`, commit `94668a7849f04eb2cbb88ba4af44f7d578c729bf`
 - Nemo-RL submodule: `alexbowe/RL`, branch `abowe/trtllm-specdec-rebase`, commit `129ecfccad642f9fb231436a9da0ee067c61c25f`
 - TRTLLM base: `NVIDIA/TensorRT-LLM`, tag `v1.3.0rc14`, commit `93cb6518b6d6dbd6095748189e626db731f44545`
 - TRTLLM specdec source commit: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
