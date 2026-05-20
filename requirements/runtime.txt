@@ -30,6 +30,7 @@ wandb
 pyzmq
 cuda-python
 nvidia-cuda-runtime-cu12
+nccl4py
 etcd-sdk-python==0.0.7
 openai
 openai-harmony==0.0.4
