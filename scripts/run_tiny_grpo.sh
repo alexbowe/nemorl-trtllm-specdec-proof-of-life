@@ -44,7 +44,7 @@ dtensor_activation_checkpointing="${DTENSOR_ACTIVATION_CHECKPOINTING:-false}"
 dtensor_sequence_parallel="${DTENSOR_SEQUENCE_PARALLEL:-false}"
 stamp="$(date +%Y%m%d_%H%M%S)"
 
-mkdir -p "$run_root" "$run_root/logs" "$run_root/hf-cache" "$run_root/ray" \
+mkdir -p "$run_root" "$run_root/logs" "$run_root/hf-cache" "$run_root/ray" "$run_root/tmp" \
   "$run_root/triton-cache" "$run_root/torchinductor-cache" "$run_root/xdg-cache"
 
 venv_site="$venv/lib/python3.12/site-packages"
@@ -71,6 +71,9 @@ export TOKENIZERS_PARALLELISM=false
 unset RAY_ADDRESS RAY_CLIENT_MODE RAY_JOB_ID RAY_NAMESPACE RAY_RUNTIME_ENV_URI
 export RAY_DEDUP_LOGS=0
 export RAY_TMPDIR="${RAY_TMPDIR:-$run_root/ray}"
+export TMPDIR="${NEMORL_TRTLLM_TMPDIR:-$run_root/tmp}"
+export TMP="$TMPDIR"
+export TEMP="$TMPDIR"
 export NCCL_DEBUG="${NCCL_DEBUG:-WARN}"
 export NEMO_RL_PY_EXECUTABLES_SYSTEM=1
 export NRL_REFIT_BUFFER_MEMORY_RATIO="${NRL_REFIT_BUFFER_MEMORY_RATIO:-0.001}"
@@ -146,6 +149,23 @@ print(f"tokenizer={type(tokenizer).__name__} vocab={len(tokenizer)}", flush=True
 with init_empty_weights():
     model = AutoModelForCausalLM.from_config(cfg, trust_remote_code=True)
 print(f"empty_model={type(model).__name__}", flush=True)
+PY
+  exit $?
+fi
+
+if [ "$mode" = "ray-check" ]; then
+  "$venv/bin/python" - "$run_root/ray" <<'PY'
+import sys
+
+import ray
+from nemo_rl.distributed.virtual_cluster import init_ray
+
+log_dir = sys.argv[1]
+print(f"ray_log_dir={log_dir}", flush=True)
+init_ray(log_dir=log_dir)
+print(f"ray_initialized={ray.is_initialized()}", flush=True)
+print(f"ray_resources={ray.cluster_resources()}", flush=True)
+ray.shutdown()
 PY
   exit $?
 fi

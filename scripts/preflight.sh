@@ -13,7 +13,7 @@ trt_repo="${TRTLLM_REPO:-$repo_root/external/TensorRT-LLM}"
 venv="${NEMORL_TRTLLM_VENV:-$(default_venv "$dev_root")}"
 run_root="${RUN_ROOT:-$dev_root/nemorl-trtllm-smoke}"
 
-mkdir -p "$run_root" "$run_root/hf-cache" "$run_root/ray"
+mkdir -p "$run_root" "$run_root/hf-cache" "$run_root/ray" "$run_root/tmp"
 
 venv_site="$venv/lib/python3.12/site-packages"
 venv_libs="$venv_site/torch/lib"
@@ -36,6 +36,9 @@ export TOKENIZERS_PARALLELISM=false
 unset RAY_ADDRESS RAY_CLIENT_MODE RAY_JOB_ID RAY_NAMESPACE RAY_RUNTIME_ENV_URI
 export RAY_DEDUP_LOGS=0
 export RAY_TMPDIR="${RAY_TMPDIR:-$run_root/ray}"
+export TMPDIR="${NEMORL_TRTLLM_TMPDIR:-$run_root/tmp}"
+export TMP="$TMPDIR"
+export TEMP="$TMPDIR"
 export NCCL_DEBUG="${NCCL_DEBUG:-WARN}"
 export NEMO_RL_PY_EXECUTABLES_SYSTEM=1
 
