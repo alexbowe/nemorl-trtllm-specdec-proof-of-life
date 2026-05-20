@@ -105,14 +105,6 @@ for name in ["nemo_rl", "tensorrt_llm", "ray", "transformers"]:
     print(f"{name}: OK {getattr(mod, '__file__', '')}", flush=True)
 PY
 
-check "vllm communicator imports" - <<'PY'
-from vllm.distributed.device_communicators.pynccl import PyNcclCommunicator
-from vllm.distributed.utils import StatelessProcessGroup
-
-print("PyNcclCommunicator", PyNcclCommunicator, flush=True)
-print("StatelessProcessGroup", StatelessProcessGroup, flush=True)
-PY
-
 check "trtllm pyexecutor imports" - <<'PY'
 import importlib
 

@@ -72,7 +72,7 @@ checkout.
 Expected defaults next to the repo:
 
 - container: `$DEV_ROOT/trtllm_pytorch2512_trt1014.sqsh` if present, otherwise
-  `nvcr.io#nvidia/pytorch:25.10-py3` on AIHub and
+  `nvcr.io#nvidia/pytorch:26.02-py3` on AIHub and
   `nvcr.io#nvidia/pytorch:25.12-py3` elsewhere
 - venv: `$DEV_ROOT/venvs/trtllm-rick-<python-and-torch-version>`
 - AIHub Slurm shape: 1 node, 2 GPUs, 32 CPUs, 128G RAM, 2 hours
@@ -170,7 +170,7 @@ The reward is only a smoke-test signal.
 
 ## Fixes Applied
 
-- Rebase the TRTLLM specdec path onto current upstream main. The older bundled
+- Rebase the TRTLLM specdec path onto upstream `v1.3.0rc14`. The older bundled
   Mamba multi-token patch is now opt-in for testing older TRTLLM checkouts.
 - Link built TRTLLM plugin `.so` files into the fresh source checkout, because a
   clean submodule checkout does not include compiled TRTLLM libraries.
@@ -189,9 +189,9 @@ The reward is only a smoke-test signal.
 - Skip Git LFS smudge by default during clone/submodule setup; the smoke does
   not need LFS payloads and this avoids slow first-run checkouts.
 - Align package pins like `transformers` and `datasets` with the versions
-  required by the TRTLLM 1.2.0 wheel.
-- Install TRTLLM and vLLM wheels with `--no-deps` so their mutually
-  incompatible optional transitive pins do not break this TRTLLM-only smoke.
+  required by the TRTLLM wheel.
+- Install the TRTLLM wheel with `--no-deps` so optional transitive pins do not
+  break this TRTLLM-only smoke.
 - Put pip build temp files under the run root, and disable pip wheel caching for
   torch-extension builds to avoid cross-filesystem wheel rename failures.
 - Put Ray temp files under a short local `/tmp/nemorl-ray-*` path to avoid long
@@ -214,9 +214,9 @@ The reward is only a smoke-test signal.
 
 ## Sources
 
-- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase`, commit `feb730c41ee4aaf7a2ec4403066e8bda11cdc33b`
+- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase-1.3.0rc14`, commit `2fe7f54e45b1d9367c3c15057af1fc9ffc500e5b`
 - Nemo-RL submodule: `alexbowe/RL`, branch `abowe/trtllm-specdec-rebase`, commit `129ecfccad642f9fb231436a9da0ee067c61c25f`
-- TRTLLM base branch: `NVIDIA/TensorRT-LLM`, branch `main`, commit `f278c4f17f...`
+- TRTLLM base: `NVIDIA/TensorRT-LLM`, tag `v1.3.0rc14`, commit `93cb6518b6d6dbd6095748189e626db731f44545`
 - TRTLLM specdec source commit: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
 - Review patches:
   - `patches/trtllm-mamba-multitoken-decode.patch`
