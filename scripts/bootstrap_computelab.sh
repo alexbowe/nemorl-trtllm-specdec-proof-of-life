@@ -70,6 +70,22 @@ EOF
   fi
 }
 
+restore_known_submodule_patch_files() {
+  if [ -d "$install_dir/external/RL/.git" ] || [ -f "$install_dir/external/RL/.git" ]; then
+    git_public -C "$install_dir/external/RL" restore --worktree --staged -- \
+      nemo_rl/distributed/virtual_cluster.py \
+      nemo_rl/models/generation/trtllm/trtllm_generation.py \
+      nemo_rl/models/generation/trtllm/trtllm_worker.py \
+      nemo_rl/models/policy/workers/patches.py \
+      2>/dev/null || true
+  fi
+  if [ -d "$install_dir/external/TensorRT-LLM/.git" ] || [ -f "$install_dir/external/TensorRT-LLM/.git" ]; then
+    git_public -C "$install_dir/external/TensorRT-LLM" restore --worktree --staged -- \
+      tensorrt_llm/_torch/modules/mamba/mamba2_mixer.py \
+      2>/dev/null || true
+  fi
+}
+
 mkdir -p "$dev_root"
 
 if [ -d "$install_dir/.git" ]; then
@@ -80,11 +96,14 @@ if [ -d "$install_dir/.git" ]; then
     --staged \
     -- .gitmodules README.md data patches requirements scripts
   git_public -C "$install_dir" checkout -B "$ref" "origin/$ref"
-  git_public -C "$install_dir" submodule sync --recursive
-  git_public -C "$install_dir" submodule update --init --recursive
+  restore_known_submodule_patch_files
+  git_public -C "$install_dir" submodule sync
+  git_public -C "$install_dir" submodule update --init
 else
   mkdir -p "$(dirname "$install_dir")"
-  git_public clone --recurse-submodules --branch "$ref" "$repo_url" "$install_dir"
+  git_public clone --branch "$ref" "$repo_url" "$install_dir"
+  git_public -C "$install_dir" submodule sync
+  git_public -C "$install_dir" submodule update --init
 fi
 
 check_standalone_checkout

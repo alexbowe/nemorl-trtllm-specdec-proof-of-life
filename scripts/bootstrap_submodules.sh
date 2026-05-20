@@ -6,7 +6,7 @@ repo_root="$(cd -- "$script_dir/.." && pwd)"
 export GIT_LFS_SKIP_SMUDGE="${GIT_LFS_SKIP_SMUDGE:-1}"
 
 cd "$repo_root"
-git -c credential.helper= submodule update --init --recursive
+git -c credential.helper= submodule update --init
 
 printf 'TensorRT-LLM: %s\n' "$(git -C "$repo_root/external/TensorRT-LLM" rev-parse HEAD)"
 printf 'RL: %s\n' "$(git -C "$repo_root/external/RL" rev-parse HEAD)"
