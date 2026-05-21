@@ -43,6 +43,7 @@ dtensor_context_parallel_size="${DTENSOR_CONTEXT_PARALLEL_SIZE:-1}"
 dtensor_cpu_offload="${DTENSOR_CPU_OFFLOAD:-false}"
 dtensor_activation_checkpointing="${DTENSOR_ACTIVATION_CHECKPOINTING:-false}"
 dtensor_sequence_parallel="${DTENSOR_SEQUENCE_PARALLEL:-false}"
+require_specdec_metrics="${NEMORL_TRTLLM_REQUIRE_SPECDEC_METRICS:-1}"
 stamp="$(date +%Y%m%d_%H%M%S)"
 
 mkdir -p "$run_root" "$run_root/logs" "$run_root/hf-cache" "$ray_root" "$ray_root/tmp" \
@@ -341,6 +342,7 @@ cfg.policy.generation.trtllm_cfg.gpu_memory_utilization = trtllm_gpu_memory_util
 cfg.policy.generation.trtllm_cfg.max_model_len = max_total_sequence_length
 cfg.policy.generation.trtllm_cfg.max_batch_size = trtllm_max_batch_size
 cfg.policy.generation.trtllm_cfg.max_num_tokens = trtllm_max_num_tokens
+cfg.policy.generation.trtllm_cfg.return_perf_metrics = True
 if spec_decoding_method == "none":
     cfg.policy.generation.trtllm_cfg.speculative_decoding = None
 else:
@@ -449,3 +451,14 @@ fi
 
 echo "run_log=$run_log"
 "$venv/bin/python" -u examples/run_grpo.py --config "$config_path" 2>&1 | tee "$run_log"
+
+if [ "$require_specdec_metrics" = "1" ] && [ "$spec_decoding_method" != "none" ]; then
+  if ! grep -q "TRTLLM Specdec Metrics:" "$run_log"; then
+    echo "Expected TRTLLM specdec metrics were not reported in $run_log" >&2
+    echo "Set NEMORL_TRTLLM_REQUIRE_SPECDEC_METRICS=0 to allow older checkouts." >&2
+    exit 1
+  fi
+  echo
+  echo "specdec_metrics_report=$run_log"
+  sed -n '/TRTLLM Specdec Metrics:/,+6p' "$run_log"
+fi

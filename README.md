@@ -125,6 +125,9 @@ Useful runtime overrides:
 - `NEMORL_TRTLLM_DETECT_CUDA_ARCH_LIST=0` keeps the container's
   `TORCH_CUDA_ARCH_LIST`. By default the script detects the visible GPU archs
   before torch-extension builds.
+- `NEMORL_TRTLLM_REQUIRE_SPECDEC_METRICS=0` allows a run to pass even if the
+  TRTLLM speculative decoding timing counters are missing. By default the proof
+  run requires them when specdec is enabled.
 
 ## Manual Run
 
@@ -159,6 +162,8 @@ The patch scripts are only for older external checkouts.
 - Specdec: `draft_target`
 - Task: tiny math GRPO with `hf_math_verify`
 - Run size: one GRPO step, one prompt per step, two generations per prompt
+- Metrics: draft tokens proposed/accepted, token acceptance rate, draft/generator
+  forward time, target/verifier forward time, and draft-token throughput
 
 Validated smoke result:
 
@@ -174,6 +179,9 @@ The reward is only a smoke-test signal.
 
 - Rebase the TRTLLM specdec path onto upstream `v1.3.0rc14`. The older bundled
   Mamba multi-token patch is now opt-in for testing older TRTLLM checkouts.
+- Add optional TRTLLM speculative decoding counters and Nemo-RL logging for
+  draft/generator time, target/verifier time, proposed draft tokens, accepted
+  draft tokens, token acceptance rate, and draft-token throughput.
 - Lazy-load optional TRTLLM FlashInfer MoE communication code, so a basic
   TRTLLM import does not require FlashInfer's CUDA IPC path.
 - Cast TRTLLM Mamba prefill SSM state updates to the cache dtype before writing
@@ -225,8 +233,8 @@ The reward is only a smoke-test signal.
 
 ## Sources
 
-- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase-1.3.0rc14`, commit `94668a7849f04eb2cbb88ba4af44f7d578c729bf`
-- Nemo-RL submodule: `alexbowe/RL`, branch `abowe/trtllm-specdec-rebase`, commit `129ecfccad642f9fb231436a9da0ee067c61c25f`
+- TensorRT-LLM submodule: `alexbowe/TensorRT-LLM`, branch `abowe/trtllm-specdec-rebase-1.3.0rc14`, commit `73b188e1dec98d88a7ae671eddd16c1d52b22408`
+- Nemo-RL submodule: `alexbowe/RL`, branch `abowe/trtllm-specdec-rebase`, commit `b876030ed6d86980e8735a7c2adf7b0df451d325`
 - TRTLLM base: `NVIDIA/TensorRT-LLM`, tag `v1.3.0rc14`, commit `93cb6518b6d6dbd6095748189e626db731f44545`
 - TRTLLM specdec source commit: `ricklamers-nvidia/TensorRT-LLM`, branch `rick/specdec-driver535-fixes`, commit `c31be54bb2c34d52cc710358bae31fcf8a43d5ae`
 - Review patches:
