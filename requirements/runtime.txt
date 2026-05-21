@@ -28,7 +28,7 @@ mlflow>=3.5.0,<3.6.0
 swanlab
 wandb
 pyzmq
-cuda-python
+cuda-python>=13,<13.1
 nvidia-cuda-runtime-cu12
 nccl4py
 etcd-sdk-python==0.0.7

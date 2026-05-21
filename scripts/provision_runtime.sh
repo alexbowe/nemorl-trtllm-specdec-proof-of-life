@@ -17,6 +17,9 @@ no_deps_requirements_file="${NEMORL_TRTLLM_NO_DEPS_REQUIREMENTS:-$repo_root/requ
 torch_build_requirements_file="${NEMORL_TRTLLM_TORCH_BUILD_REQUIREMENTS:-$repo_root/requirements/torch-build.txt}"
 preserve_container_torch="${NEMORL_TRTLLM_PRESERVE_CONTAINER_TORCH:-1}"
 install_trtllm_deps="${NEMORL_TRTLLM_INSTALL_TRTLLM_DEPS:-0}"
+torch_spec="${NEMORL_TRTLLM_TORCH_SPEC:-}"
+torchvision_spec="${NEMORL_TRTLLM_TORCHVISION_SPEC:-}"
+torch_index_url="${NEMORL_TRTLLM_TORCH_INDEX_URL:-}"
 
 require_command python
 
@@ -111,6 +114,20 @@ if [ -z "$install_torch_build_deps" ]; then
 fi
 
 "$venv/bin/python" -m pip install --upgrade pip setuptools wheel
+torch_packages=()
+if [ -n "$torch_spec" ]; then
+  torch_packages+=("$torch_spec")
+fi
+if [ -n "$torchvision_spec" ]; then
+  torch_packages+=("$torchvision_spec")
+fi
+if [ "${#torch_packages[@]}" -gt 0 ]; then
+  if [ -n "$torch_index_url" ]; then
+    "$venv/bin/python" -m pip install --upgrade --index-url "$torch_index_url" "${torch_packages[@]}"
+  else
+    "$venv/bin/python" -m pip install --upgrade "${torch_packages[@]}"
+  fi
+fi
 "$venv/bin/python" -m pip install --constraint "$constraints" -r "$requirements_file"
 if [ "$install_trtllm_deps" = "1" ]; then
   "$venv/bin/python" -m pip install --upgrade --constraint "$constraints" -r "$no_deps_requirements_file"
