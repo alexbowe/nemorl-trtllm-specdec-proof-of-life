@@ -162,9 +162,11 @@ The patch scripts are only for older external checkouts.
 
 Validated smoke result:
 
+- AIHub PDX Slurm job: `5545373`
 - `max_draft_len=4`
 - final signal: `Max number of steps has been reached`
-- observed reward: `Avg Reward: 0.5000`
+- observed reward: `Avg Reward: 0.0000`
+- generation throughput: `40.52 tokens/sec` for the generation worker group
 
 The reward is only a smoke-test signal.
 
