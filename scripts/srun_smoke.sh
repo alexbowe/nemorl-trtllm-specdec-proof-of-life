@@ -142,7 +142,7 @@ run_srun_once() {
   printf 'partition=%s gpus=%s cpus=%s mem=%s time=%s account=%s exclude=%s nodelist=%s remap_root=%s\n' \
     "$partition" "$gpus_per_node" "$cpus_per_task" "${mem:-<default>}" "$time_limit" "${account:-<none>}" "${current_exclude:-<none>}" "${nodelist:-<none>}" "${container_remap_root:-<default>}"
 
-  srun "${srun_args[@]}" bash -lc 'scripts/smoke.sh' 2> >(tee "$srun_log" >&2) &
+  srun "${srun_args[@]}" bash -lc 'scripts/smoke.sh' > >(tee "$srun_log") 2>&1 &
   srun_pid=$!
 
   while kill -0 "$srun_pid" >/dev/null 2>&1; do
@@ -231,8 +231,13 @@ while [ "$attempt" -le "$max_attempts" ]; do
   if [ "$status" -eq 0 ]; then
     exit 0
   fi
-  failed_node="$(sed -n 's/.*srun: error: \([^:]*\): task .*/\1/p' "$srun_log" | tail -n 1)"
-  if grep -Eq "pyxis: (failed to import docker image|couldn't start container)|spank_pyxis.so" "$srun_log" \
+  failed_node="$(
+    sed -n \
+      -e 's/.*srun: error: \([^: ]*\): task .*/\1/p' \
+      -e 's/.*srun: error: Nodes \([^ ]*\) .*/\1/p' \
+      "$srun_log" | tail -n 1
+  )"
+  if grep -Eq "pyxis: (failed to import docker image|couldn't start container)|spank_pyxis.so|Nodes .* are still not ready|Something is wrong with the boot" "$srun_log" \
     && [ -n "$failed_node" ] \
     && [ -z "$nodelist" ] \
     && [ "$attempt" -lt "$max_attempts" ]; then

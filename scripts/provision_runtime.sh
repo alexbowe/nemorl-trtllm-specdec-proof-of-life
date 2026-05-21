@@ -38,9 +38,15 @@ PY
 
 mkdir -p "$(dirname "$venv")" "$run_root/pip-cache" "$run_root/tmp"
 
-if [ ! -x "$venv/bin/python" ]; then
+if [ ! -x "$venv/bin/python" ] || ! "$venv/bin/python" -m pip --version >/dev/null 2>&1; then
   echo "Creating venv: $venv"
-  python -m venv --system-site-packages "$venv"
+  if ! python -m venv --system-site-packages "$venv"; then
+    echo "ensurepip failed while creating venv; retrying with system pip visible." >&2
+    python -m venv --system-site-packages --without-pip "$venv"
+  fi
+  if ! "$venv/bin/python" -m pip --version >/dev/null 2>&1; then
+    python -m pip --python "$venv/bin/python" install pip setuptools wheel
+  fi
 fi
 
 export PIP_CACHE_DIR="${PIP_CACHE_DIR:-$run_root/pip-cache}"
