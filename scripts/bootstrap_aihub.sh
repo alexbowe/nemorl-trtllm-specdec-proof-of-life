@@ -5,6 +5,8 @@ repo_url="${NEMORL_TRTLLM_REPO_URL:-https://github.com/alexbowe/nemorl-trtllm-sp
 ref="${NEMORL_TRTLLM_REF:-main}"
 profile="${CLUSTER_PROFILE:-aihub}"
 export GIT_LFS_SKIP_SMUDGE="${GIT_LFS_SKIP_SMUDGE:-1}"
+export NEMORL_TRTLLM_INSTALL_TRTLLM_DEPS="${NEMORL_TRTLLM_INSTALL_TRTLLM_DEPS:-1}"
+export NEMORL_TRTLLM_PRESERVE_CONTAINER_TORCH="${NEMORL_TRTLLM_PRESERVE_CONTAINER_TORCH:-0}"
 
 if [ -z "${DEV_ROOT:-}" ]; then
   user="${USER:-$(id -un)}"

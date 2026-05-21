@@ -59,10 +59,12 @@ esac
 
 container_image="${CONTAINER_IMAGE:-${NEMORL_TRTLLM_CONTAINER_IMAGE:-${COMPUTELAB_CONTAINER_IMAGE:-}}}"
 if [ -z "$container_image" ]; then
-  if [ -f "$dev_root/trtllm_pytorch2512_trt1014.sqsh" ]; then
+  if [ -f "$dev_root/trtllm_pytorch2512_trt1014_direct.sqsh" ]; then
+    container_image="$dev_root/trtllm_pytorch2512_trt1014_direct.sqsh"
+  elif [ -f "$dev_root/trtllm_pytorch2512_trt1014.sqsh" ]; then
     container_image="$dev_root/trtllm_pytorch2512_trt1014.sqsh"
   elif [ "$profile" = "aihub" ]; then
-    container_image="nvcr.io#nvidia/pytorch:26.02-py3"
+    container_image="nvcr.io#nvidia/pytorch:25.12-py3"
   else
     container_image="nvcr.io#nvidia/pytorch:25.12-py3"
   fi

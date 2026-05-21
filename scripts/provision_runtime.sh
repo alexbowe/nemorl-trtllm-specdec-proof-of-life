@@ -15,6 +15,8 @@ run_root="${RUN_ROOT:-$dev_root/nemorl-trtllm-smoke}"
 requirements_file="${NEMORL_TRTLLM_REQUIREMENTS:-$repo_root/requirements/runtime.txt}"
 no_deps_requirements_file="${NEMORL_TRTLLM_NO_DEPS_REQUIREMENTS:-$repo_root/requirements/no-deps.txt}"
 torch_build_requirements_file="${NEMORL_TRTLLM_TORCH_BUILD_REQUIREMENTS:-$repo_root/requirements/torch-build.txt}"
+preserve_container_torch="${NEMORL_TRTLLM_PRESERVE_CONTAINER_TORCH:-1}"
+install_trtllm_deps="${NEMORL_TRTLLM_INSTALL_TRTLLM_DEPS:-0}"
 
 require_command python
 
@@ -55,11 +57,15 @@ export TMPDIR="${TMPDIR:-$run_root/tmp}"
 constraints="$run_root/runtime-constraints.txt"
 "$venv/bin/python" - "$constraints" <<'PY'
 import importlib
+import os
 import sys
 
 path = sys.argv[1]
 packages = ["torch", "torchvision", "torchaudio"]
 with open(path, "w", encoding="utf-8") as f:
+    preserve = os.environ.get("NEMORL_TRTLLM_PRESERVE_CONTAINER_TORCH", "1")
+    if preserve not in {"1", "true", "TRUE", "yes", "YES", "on", "ON"}:
+        raise SystemExit(0)
     for package in packages:
         try:
             mod = importlib.import_module(package)
@@ -106,7 +112,11 @@ fi
 
 "$venv/bin/python" -m pip install --upgrade pip setuptools wheel
 "$venv/bin/python" -m pip install --constraint "$constraints" -r "$requirements_file"
-"$venv/bin/python" -m pip install --no-deps --constraint "$constraints" -r "$no_deps_requirements_file"
+if [ "$install_trtllm_deps" = "1" ]; then
+  "$venv/bin/python" -m pip install --upgrade --constraint "$constraints" -r "$no_deps_requirements_file"
+else
+  "$venv/bin/python" -m pip install --no-deps --constraint "$constraints" -r "$no_deps_requirements_file"
+fi
 if [ "$install_torch_build_deps" = "1" ]; then
   "$venv/bin/python" -m pip install --no-build-isolation --no-cache-dir --constraint "$constraints" -r "$torch_build_requirements_file"
 else
