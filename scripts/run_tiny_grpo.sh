@@ -242,6 +242,7 @@ fi
 
 "$venv/bin/python" - "$config_path" "$run_root/logs" "$model_name" "$spec_model" "$spec_decoding_method" "$max_draft_len" "$max_new_tokens" "$trtllm_gpu_memory_utilization" "$trtllm_max_num_tokens" "$trtllm_max_batch_size" "$generation_batch_size" "$num_generations_per_prompt" "$train_global_batch_size" "$train_micro_batch_size" "$max_total_sequence_length" "$cluster_num_nodes" "$cluster_gpus_per_node" "$inference_gpus_per_node" "$inference_num_nodes" "$dtensor_v2" "$dtensor_tensor_parallel_size" "$dtensor_context_parallel_size" "$dtensor_cpu_offload" "$dtensor_activation_checkpointing" "$dtensor_sequence_parallel" <<'PY'
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -272,6 +273,9 @@ dtensor_context_parallel_size = int(sys.argv[22])
 dtensor_cpu_offload = sys.argv[23].lower() in {"1", "true", "yes", "on"}
 dtensor_activation_checkpointing = sys.argv[24].lower() in {"1", "true", "yes", "on"}
 dtensor_sequence_parallel = sys.argv[25].lower() in {"1", "true", "yes", "on"}
+disable_nemotron_h_fast_path = os.environ.get(
+    "NEMORL_TRTLLM_DISABLE_NEMOTRON_H_FAST_PATH", "1"
+).lower() in {"1", "true", "yes", "on"}
 cfg = load_config("configs/grpo_qwen3_1.7b_specdec.yaml")
 run_root = Path(config_path).parent
 tiny_data_path = run_root / "tiny_math_grpo.jsonl"
@@ -311,6 +315,9 @@ cfg.policy.generation_batch_size = generation_batch_size
 cfg.policy.logprob_batch_size = 1
 cfg.policy.max_total_sequence_length = max_total_sequence_length
 cfg.policy.sequence_packing.enabled = False
+if disable_nemotron_h_fast_path:
+    cfg.policy.hf_config_overrides = dict(cfg.policy.hf_config_overrides or {})
+    cfg.policy.hf_config_overrides["use_mamba_kernels"] = False
 cfg.policy.dtensor_cfg._v2 = dtensor_v2
 cfg.policy.dtensor_cfg.enabled = True
 cfg.policy.dtensor_cfg.tensor_parallel_size = dtensor_tensor_parallel_size
