@@ -331,6 +331,15 @@ cfg.policy.train_micro_batch_size = train_micro_batch_size
 cfg.policy.generation_batch_size = generation_batch_size
 cfg.policy.logprob_batch_size = 1
 cfg.policy.max_total_sequence_length = max_total_sequence_length
+cfg.policy.optimizer = {
+    "name": "torch.optim.AdamW",
+    "kwargs": {
+        "lr": 5.0e-6,
+        "weight_decay": 0.01,
+        "betas": [0.9, 0.999],
+        "eps": 1e-8,
+    },
+}
 cfg.policy.sequence_packing.enabled = False
 if disable_nemotron_h_fast_path:
     cfg.policy.hf_config_overrides = dict(cfg.policy.hf_config_overrides or {})
