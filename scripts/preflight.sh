@@ -52,6 +52,23 @@ done < <(env)
 
 cd "$repo"
 
+base_config="${NEMORL_BASE_CONFIG:-}"
+if [ -z "$base_config" ]; then
+  for candidate in \
+    configs/grpo_qwen3_1.7b_specdec.yaml \
+    examples/configs/recipes/llm/grpo-qwen3-1.7b-2n4g-megatron-trtllm.yaml \
+    examples/configs/grpo_math_1B.yaml; do
+    if [ -f "$candidate" ]; then
+      base_config="$candidate"
+      break
+    fi
+  done
+fi
+if [ -z "$base_config" ]; then
+  echo "Could not find a Nemo-RL GRPO base config." >&2
+  exit 1
+fi
+
 check() {
   local name="$1"
   shift
@@ -112,14 +129,17 @@ mod = importlib.import_module("tensorrt_llm._torch.pyexecutor.py_executor_creato
 print("py_executor_creator", getattr(mod, "__file__", ""), flush=True)
 PY
 
-check "nemo rl config load" - <<'PY'
+check "nemo rl config load" - "$base_config" <<'PY'
+import sys
+
 from nemo_rl.utils.config import load_config
 from omegaconf import OmegaConf
 
 OmegaConf.register_new_resolver("mul", lambda a, b: a * b, replace=True)
-cfg = load_config("configs/grpo_qwen3_1.7b_specdec.yaml")
+cfg = load_config(sys.argv[1])
+print("base_config", sys.argv[1], flush=True)
 print("backend", cfg.policy.generation.backend, flush=True)
-print("specdec", cfg.policy.generation.trtllm_cfg.speculative_decoding, flush=True)
+print("trtllm_cfg", cfg.policy.generation.trtllm_cfg, flush=True)
 PY
 
 printf '\npreflight: OK\n'

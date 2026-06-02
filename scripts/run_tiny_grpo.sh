@@ -94,6 +94,23 @@ run_log="$run_root/run_${stamp}.log"
 
 cd "$repo"
 
+base_config="${NEMORL_BASE_CONFIG:-}"
+if [ -z "$base_config" ]; then
+  for candidate in \
+    configs/grpo_qwen3_1.7b_specdec.yaml \
+    examples/configs/recipes/llm/grpo-qwen3-1.7b-2n4g-megatron-trtllm.yaml \
+    examples/configs/grpo_math_1B.yaml; do
+    if [ -f "$candidate" ]; then
+      base_config="$candidate"
+      break
+    fi
+  done
+fi
+if [ -z "$base_config" ]; then
+  echo "Could not find a Nemo-RL GRPO base config." >&2
+  exit 1
+fi
+
 if [ "$mode" = "import-check" ]; then
   "$venv/bin/python" - <<'PY'
 import importlib
@@ -240,7 +257,7 @@ PY
   exit $?
 fi
 
-"$venv/bin/python" - "$config_path" "$run_root/logs" "$model_name" "$spec_model" "$spec_decoding_method" "$max_draft_len" "$max_new_tokens" "$trtllm_gpu_memory_utilization" "$trtllm_max_num_tokens" "$trtllm_max_batch_size" "$generation_batch_size" "$num_generations_per_prompt" "$train_global_batch_size" "$train_micro_batch_size" "$max_total_sequence_length" "$cluster_num_nodes" "$cluster_gpus_per_node" "$inference_gpus_per_node" "$inference_num_nodes" "$dtensor_v2" "$dtensor_tensor_parallel_size" "$dtensor_context_parallel_size" "$dtensor_cpu_offload" "$dtensor_activation_checkpointing" "$dtensor_sequence_parallel" <<'PY'
+"$venv/bin/python" - "$base_config" "$config_path" "$run_root/logs" "$model_name" "$spec_model" "$spec_decoding_method" "$max_draft_len" "$max_new_tokens" "$trtllm_gpu_memory_utilization" "$trtllm_max_num_tokens" "$trtllm_max_batch_size" "$generation_batch_size" "$num_generations_per_prompt" "$train_global_batch_size" "$train_micro_batch_size" "$max_total_sequence_length" "$cluster_num_nodes" "$cluster_gpus_per_node" "$inference_gpus_per_node" "$inference_num_nodes" "$dtensor_v2" "$dtensor_tensor_parallel_size" "$dtensor_context_parallel_size" "$dtensor_cpu_offload" "$dtensor_activation_checkpointing" "$dtensor_sequence_parallel" <<'PY'
 import json
 import os
 import sys
@@ -252,31 +269,31 @@ from nemo_rl.utils.config import load_config
 
 OmegaConf.register_new_resolver("mul", lambda a, b: a * b, replace=True)
 
-config_path, log_dir, model_name, spec_model, spec_decoding_method = sys.argv[1:6]
-max_draft_len = int(sys.argv[6])
-max_new_tokens = int(sys.argv[7])
-trtllm_gpu_memory_utilization = float(sys.argv[8])
-trtllm_max_num_tokens = int(sys.argv[9])
-trtllm_max_batch_size = int(sys.argv[10])
-generation_batch_size = int(sys.argv[11])
-num_generations_per_prompt = int(sys.argv[12])
-train_global_batch_size = int(sys.argv[13])
-train_micro_batch_size = int(sys.argv[14])
-max_total_sequence_length = int(sys.argv[15])
-cluster_num_nodes = int(sys.argv[16])
-cluster_gpus_per_node = int(sys.argv[17])
-inference_gpus_per_node = int(sys.argv[18])
-inference_num_nodes = int(sys.argv[19]) if sys.argv[19] else None
-dtensor_v2 = sys.argv[20].lower() in {"1", "true", "yes", "on"}
-dtensor_tensor_parallel_size = int(sys.argv[21])
-dtensor_context_parallel_size = int(sys.argv[22])
-dtensor_cpu_offload = sys.argv[23].lower() in {"1", "true", "yes", "on"}
-dtensor_activation_checkpointing = sys.argv[24].lower() in {"1", "true", "yes", "on"}
-dtensor_sequence_parallel = sys.argv[25].lower() in {"1", "true", "yes", "on"}
+base_config, config_path, log_dir, model_name, spec_model, spec_decoding_method = sys.argv[1:7]
+max_draft_len = int(sys.argv[7])
+max_new_tokens = int(sys.argv[8])
+trtllm_gpu_memory_utilization = float(sys.argv[9])
+trtllm_max_num_tokens = int(sys.argv[10])
+trtllm_max_batch_size = int(sys.argv[11])
+generation_batch_size = int(sys.argv[12])
+num_generations_per_prompt = int(sys.argv[13])
+train_global_batch_size = int(sys.argv[14])
+train_micro_batch_size = int(sys.argv[15])
+max_total_sequence_length = int(sys.argv[16])
+cluster_num_nodes = int(sys.argv[17])
+cluster_gpus_per_node = int(sys.argv[18])
+inference_gpus_per_node = int(sys.argv[19])
+inference_num_nodes = int(sys.argv[20]) if sys.argv[20] else None
+dtensor_v2 = sys.argv[21].lower() in {"1", "true", "yes", "on"}
+dtensor_tensor_parallel_size = int(sys.argv[22])
+dtensor_context_parallel_size = int(sys.argv[23])
+dtensor_cpu_offload = sys.argv[24].lower() in {"1", "true", "yes", "on"}
+dtensor_activation_checkpointing = sys.argv[25].lower() in {"1", "true", "yes", "on"}
+dtensor_sequence_parallel = sys.argv[26].lower() in {"1", "true", "yes", "on"}
 disable_nemotron_h_fast_path = os.environ.get(
     "NEMORL_TRTLLM_DISABLE_NEMOTRON_H_FAST_PATH", "1"
 ).lower() in {"1", "true", "yes", "on"}
-cfg = load_config("configs/grpo_qwen3_1.7b_specdec.yaml")
+cfg = load_config(base_config)
 run_root = Path(config_path).parent
 tiny_data_path = run_root / "tiny_math_grpo.jsonl"
 
@@ -349,10 +366,13 @@ cfg.policy.generation.trtllm_cfg.gpu_memory_utilization = trtllm_gpu_memory_util
 cfg.policy.generation.trtllm_cfg.max_model_len = max_total_sequence_length
 cfg.policy.generation.trtllm_cfg.max_batch_size = trtllm_max_batch_size
 cfg.policy.generation.trtllm_cfg.max_num_tokens = trtllm_max_num_tokens
+cfg.policy.generation.trtllm_cfg.async_engine = False
 cfg.policy.generation.trtllm_cfg.return_perf_metrics = True
 if spec_decoding_method == "none":
     cfg.policy.generation.trtllm_cfg.speculative_decoding = None
 else:
+    if cfg.policy.generation.trtllm_cfg.get("speculative_decoding") is None:
+        cfg.policy.generation.trtllm_cfg.speculative_decoding = {}
     cfg.policy.generation.trtllm_cfg.speculative_decoding.method = spec_decoding_method
     cfg.policy.generation.trtllm_cfg.speculative_decoding.max_draft_len = max_draft_len
     cfg.policy.generation.trtllm_cfg.speculative_decoding.speculative_model = spec_model
@@ -428,6 +448,7 @@ OmegaConf.save(config=cfg, f=config_path)
 resolved = OmegaConf.to_container(cfg, resolve=True)
 
 print(f"wrote_config={config_path}")
+print(f"base_config={base_config}")
 print(f"tiny_data={tiny_data_path}")
 print(f"model={resolved['policy']['model_name']}")
 print(f"backend={resolved['policy']['generation']['backend']}")
